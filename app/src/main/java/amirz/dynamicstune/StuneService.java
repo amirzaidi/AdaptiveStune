@@ -109,12 +109,14 @@ public class StuneService extends AccessibilityService {
                         offset = -1;
                     }
 
-                    int boost = Utilities.getBoost(this, oldComponent) + offset;
-                    boost = Math.max(Utilities.IDLE_BOOST, boost);
-                    boost = Math.min(Utilities.MAX_BOOST, boost);
-                    Utilities.setBoost(this, oldComponent, boost);
+                    if (offset != 0) {
+                        int boost = Utilities.getBoost(this, oldComponent) + offset;
+                        boost = Math.max(Utilities.IDLE_BOOST, boost);
+                        boost = Math.min(Utilities.MAX_BOOST, boost);
+                        Utilities.setBoost(this, oldComponent, boost);
 
-                    Log.e(TAG, "Boost updated to " + boost + " for " + oldComponent.flattenToShortString());
+                        Log.e(TAG, "Boost updated to " + boost + " for " + oldComponent.flattenToShortString());
+                    }
                 }
             }
         }
