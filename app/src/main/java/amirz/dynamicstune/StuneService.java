@@ -7,9 +7,9 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 
-import java.util.List;
+import com.topjohnwu.superuser.Shell;
 
-import eu.chainfire.libsuperuser.Shell;
+import java.util.List;
 
 public class StuneService extends AccessibilityService {
     private static final String TAG = "StuneService";
@@ -94,7 +94,7 @@ public class StuneService extends AccessibilityService {
             if (total > 0) {
                 double jankFactor = (double) janky / total;
 
-                Log.e(TAG, "Rendered " + total + " with " + janky + " janks (" + jankFactor + ") for " +
+                Log.w(TAG, "Rendered " + total + " with " + janky + " janks (" + jankFactor + ") for " +
                         oldComponent.flattenToShortString());
 
                 // Discard results if not enough information is collected.
@@ -115,7 +115,7 @@ public class StuneService extends AccessibilityService {
                         boost = Math.min(Utilities.MAX_BOOST, boost);
                         Utilities.setBoost(this, oldComponent, boost);
 
-                        Log.e(TAG, "Boost updated to " + boost + " for " + oldComponent.flattenToShortString());
+                        Log.w(TAG, "Boost updated to " + boost + " for " + oldComponent.flattenToShortString());
                     }
                 }
             }
@@ -146,7 +146,7 @@ public class StuneService extends AccessibilityService {
         for (String str : command) {
             Log.d(TAG, "SU: " + str);
         }
-        return Shell.SU.run(command);
+        return Shell.Sync.su(command);
     }
 
     @Override
