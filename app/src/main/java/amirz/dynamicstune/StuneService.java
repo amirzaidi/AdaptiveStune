@@ -122,7 +122,7 @@ public class StuneService extends AccessibilityService {
 
     private void setDefaultParams() {
         runSU("echo 1 > /sys/module/cpu_boost/parameters/input_boost_enabled",
-                "echo 1250 > /sys/module/cpu_boost/parameters/input_boost_ms",
+                "echo 1500 > /sys/module/cpu_boost/parameters/input_boost_ms",
                 "echo 0:1000000 1:0 2:1000000 3:0 > /sys/module/cpu_boost/parameters/input_boost_freq",
                 "echo " + Utilities.IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
 
