@@ -98,14 +98,14 @@ public class StuneService extends AccessibilityService {
                 Log.e(TAG, "Rendered " + total + " with " + janky + " janks (" + jankFactor + ") for " +
                         oldComponent.flattenToShortString());
 
-                // Discard results if not enough information is collected: at least 120 frames.
-                if (total > 120) {
-                    int offset = 0;
+                // Discard results if not enough information is collected: at least 90 frames.
+                if (total > 90) {
+                    int offset;
 
-                    // Try to keep jank between 5% and 15%
-                    if (jankFactor >= 0.30) {
+                    // Try to keep jank between 5% and 10%
+                    if (jankFactor >= 0.25) {
                         offset = 5;
-                    } else if (jankFactor >= 0.15) {
+                    } else if (jankFactor >= 0.10) {
                         offset = 1;
                     } else if (jankFactor >= 0.05) {
                         offset = 0;
