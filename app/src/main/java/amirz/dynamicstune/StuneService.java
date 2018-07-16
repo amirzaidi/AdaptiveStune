@@ -23,7 +23,6 @@ public class StuneService extends AccessibilityService {
 
     @Override
     public void onServiceConnected() {
-        Log.e(TAG, "onServiceConnected");
         mHandler = new Handler();
 
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
