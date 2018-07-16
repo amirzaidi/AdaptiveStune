@@ -8,6 +8,12 @@ public class Utilities {
     public static final int IDLE_BOOST = 5;
     public static final int DEFAULT_BOOST = 20;
     public static final int MAX_BOOST = 50;
+
+    public static final int JANK_FACTOR_MIN_FRAMES = 180;
+    public static final double JANK_FACTOR_QUICK_BOOST = 0.35;
+    public static final double JANK_FACTOR_STEADY_INCREASE = 0.20;
+    public static final double JANK_FACTOR_STEADY_DECREASE = 0.05;
+
     private static final String PREFIX = "boost_";
 
     private static SharedPreferences prefs(Context context) {
