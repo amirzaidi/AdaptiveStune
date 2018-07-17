@@ -38,36 +38,33 @@ public class StuneService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        final ComponentName newComponent =
-                new ComponentName(event.getPackageName().toString(),
+        final ComponentName newComponent = new ComponentName(event.getPackageName().toString(),
                     event.getClassName().toString());
 
         // If we are still in the same component or this is an overlay, do not do anything.
-        if (newComponent.equals(mCurrentComponent) ||
-                getPackageManager().resolveActivity(new Intent()
-                    .setComponent(newComponent), 0) == null) {
-            return;
+        if (!newComponent.equals(mCurrentComponent) && getPackageManager()
+                .resolveActivity(new Intent().setComponent(newComponent), 0) != null) {
+
+            // User must at least be in this component for a full second before applying data.
+            final ComponentName oldComponent =
+                    mCurrentTime + 1000L < System.currentTimeMillis() ?
+                            mCurrentComponent :
+                            null;
+
+            mCurrentComponent = newComponent;
+            mCurrentTime = System.currentTimeMillis();
+
+            Log.w(TAG, "Detected launch of " + mCurrentComponent.flattenToShortString());
+            setDynamicStuneBoost(Database.getBoostInt(this, mCurrentComponent));
+
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    // Use and reset the stats after opening a new component.
+                    optimizeAndReset(oldComponent, newComponent);
+                }
+            });
         }
-
-        // User must at least be in this component for a full second before applying data.
-        final ComponentName oldComponent =
-                mCurrentTime + 1000L < System.currentTimeMillis() ?
-                        mCurrentComponent :
-                        null;
-
-        mCurrentComponent = newComponent;
-        mCurrentTime = System.currentTimeMillis();
-
-        Log.w(TAG, "Detected launch of " + mCurrentComponent.flattenToShortString());
-        setDynamicStuneBoost(Database.getBoostInt(this, mCurrentComponent));
-
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                // Use and reset the stats after opening a new component.
-                optimizeAndReset(oldComponent, newComponent);
-            }
-        });
     }
 
     private int readInt(String line) {
@@ -93,6 +90,8 @@ public class StuneService extends AccessibilityService {
                 if (line.contains("Number Missed Vsync")) {
                     break;
                 }
+
+                // Parse data into GfxInfo object
                 if (line.contains("Total frames rendered")) {
                     info.total = readInt(line);
                 } else if (line.contains("Janky frames")) {
@@ -106,6 +105,7 @@ public class StuneService extends AccessibilityService {
                 }
             }
 
+            // Do not print logs when there was not even a single frame captured.
             if (info.total > 0) {
                 Log.w(TAG, "Rendered " + info.total + " with " + info.janky + " janks (" +
                         info.getJankFactor() + ") perc (" + info.perc90 + "ms, " + info.perc95 +
