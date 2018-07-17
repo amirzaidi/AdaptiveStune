@@ -13,6 +13,7 @@ import java.util.List;
 
 public class StuneService extends AccessibilityService {
     private static final String TAG = "StuneService";
+    private static final String[] EXCEPT = { "com.android.systemui", "com.oneplus.aod" };
 
     private Handler mHandler;
 
@@ -67,6 +68,16 @@ public class StuneService extends AccessibilityService {
         });
     }
 
+    // Should not be measured at all
+    private boolean isException(String packageName) {
+        for (String exception : EXCEPT) {
+            if (exception.equals(packageName)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private int readInt(String line) {
         // Split by :, then take the first word before the space, then remove ms
         return Integer.valueOf(line.split(":")[1].trim()
@@ -77,8 +88,8 @@ public class StuneService extends AccessibilityService {
     private void optimizeAndReset(ComponentName oldComponent, ComponentName newComponent) {
         String reset = "dumpsys gfxinfo " + newComponent.getPackageName() + " reset";
 
-        // No optimization is necessary if this is the first opened activity.
-        if (oldComponent == null) {
+        // No optimization is necessary if this is the first opened activity or blacklisted.
+        if (oldComponent == null || isException(oldComponent.getPackageName())) {
             runSU(reset);
         } else {
             // It is possible that the new package name is the same,
