@@ -72,10 +72,10 @@ public class StuneService extends AccessibilityService {
     private boolean isException(String packageName) {
         for (String exception : EXCEPT) {
             if (exception.equals(packageName)) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     private int readInt(String line) {
