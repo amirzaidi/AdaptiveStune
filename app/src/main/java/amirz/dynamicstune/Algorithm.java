@@ -3,9 +3,9 @@ package amirz.dynamicstune;
 public class Algorithm {
     private static final int MIN_FRAMES = 90;
 
-    public static final double QUICK_BOOST = 0.35;
-    public static final double STEADY_INCREASE = 0.20;
-    public static final double STEADY_DECREASE = 0.05;
+    private static final double QUICK_BOOST = 0.35;
+    private static final double STEADY_INCREASE = 0.20;
+    private static final double STEADY_DECREASE = 0.05;
 
     public static class GfxInfo {
         public int total;
@@ -33,6 +33,9 @@ public class Algorithm {
             } else if (jankFactor <= STEADY_DECREASE) {
                 offset = -1;
             }
+
+            // This will vary between approximately 0 and 4
+            offset *= Math.log(info.total);
         }
 
         return offset;
