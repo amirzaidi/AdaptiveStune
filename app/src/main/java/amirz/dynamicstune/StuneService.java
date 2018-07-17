@@ -111,7 +111,8 @@ public class StuneService extends AccessibilityService {
                 float offset = Algorithm.getBoostOffset(info);
                 if (offset != 0) {
                     float boost = Database.offsetBoost(this, oldComponent, offset);
-                    Log.w(TAG, "Boost updated to " + boost + " for " + oldComponent.flattenToShortString());
+                    Log.w(TAG, "Boost updated to " + boost + " (" + (offset >= 0 ? "+" : "-") +
+                            offset + ") for " + oldComponent.flattenToShortString());
                 }
             }
         }
