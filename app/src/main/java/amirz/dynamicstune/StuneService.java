@@ -67,6 +67,13 @@ public class StuneService extends AccessibilityService {
         });
     }
 
+    private int readInt(String line) {
+        // Split by :, then take the first word before the space, then remove ms
+        return Integer.valueOf(line.split(":")[1].trim()
+                .split(" ")[0]
+                .replace("ms", ""));
+    }
+
     private void optimizeAndReset(ComponentName oldComponent, ComponentName newComponent) {
         String reset = "dumpsys gfxinfo " + newComponent.getPackageName() + " reset";
 
@@ -83,26 +90,25 @@ public class StuneService extends AccessibilityService {
                 if (line.contains("Number Missed Vsync")) {
                     break;
                 }
-                String[] parse = line.split(":");
                 if (line.contains("Total frames rendered")) {
-                    info.total = Integer.valueOf(parse[1].trim());
+                    info.total = readInt(line);
                 } else if (line.contains("Janky frames")) {
-                    info.janky = Integer.valueOf(parse[1].trim().split(" ")[0]);
+                    info.janky = readInt(line);
                 } else if (line.contains("90th percentile")) {
-                    info.perc90 = Integer.valueOf(parse[1].trim());
+                    info.perc90 = readInt(line);
                 } else if (line.contains("95th percentile")) {
-                    info.perc95 = Integer.valueOf(parse[1].trim());
+                    info.perc95 = readInt(line);
                 } else if (line.contains("99th percentile")) {
-                    info.perc99 = Integer.valueOf(parse[1].trim());
+                    info.perc99 = readInt(line);
                 }
             }
 
             if (info.total > 0) {
                 Log.w(TAG, "Rendered " + info.total + " with " + info.janky + " janks (" +
-                        info.getJankFactor() + ") for " + oldComponent.flattenToShortString());
+                        info.getJankFactor() + ") perc (" + info.perc90 + "ms, " + info.perc95 +
+                        "ms, " + info.perc99 + "ms) for " +  oldComponent.flattenToShortString());
 
                 float offset = Algorithm.getBoostOffset(info);
-
                 if (offset != 0) {
                     float boost = Database.offsetBoost(this, oldComponent, offset);
                     Log.w(TAG, "Boost updated to " + boost + " for " + oldComponent.flattenToShortString());
