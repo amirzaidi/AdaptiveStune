@@ -3,6 +3,7 @@ package amirz.dynamicstune;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.ComponentName;
+import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
@@ -13,7 +14,6 @@ import java.util.List;
 
 public class StuneService extends AccessibilityService {
     private static final String TAG = "StuneService";
-    private static final String[] EXCEPT = { "com.android.systemui", "com.oneplus.aod" };
 
     private Handler mHandler;
 
@@ -47,6 +47,12 @@ public class StuneService extends AccessibilityService {
             return;
         }
 
+        // If this is an overlay, do not do anything.
+        if (getPackageManager().resolveActivity(new Intent()
+                .setComponent(newComponent), 0) == null) {
+            return;
+        }
+
         // User must at least be in this component for a full second before applying data.
         final ComponentName oldComponent =
                 mCurrentTime + 1000L < System.currentTimeMillis() ?
@@ -68,16 +74,6 @@ public class StuneService extends AccessibilityService {
         });
     }
 
-    // Should not be measured at all
-    private boolean isException(String packageName) {
-        for (String exception : EXCEPT) {
-            if (exception.equals(packageName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private int readInt(String line) {
         // Split by :, then take the first word before the space, then remove ms
         return Integer.valueOf(line.split(":")[1].trim()
@@ -89,7 +85,7 @@ public class StuneService extends AccessibilityService {
         String reset = "dumpsys gfxinfo " + newComponent.getPackageName() + " reset";
 
         // No optimization is necessary if this is the first opened activity or blacklisted.
-        if (oldComponent == null || isException(oldComponent.getPackageName())) {
+        if (oldComponent == null) {
             runSU(reset);
         } else {
             // It is possible that the new package name is the same,
