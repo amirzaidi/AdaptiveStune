@@ -54,7 +54,9 @@ public class StuneService extends AccessibilityService {
 
         mCurrentComponent = newComponent;
         mCurrentTime = System.currentTimeMillis();
-        setDynamicStuneBoost(Utilities.getBoost(this, mCurrentComponent));
+
+        Log.w(TAG, "Detected launch of " + mCurrentComponent.flattenToShortString());
+        setDynamicStuneBoost(Database.getBoostInt(this, mCurrentComponent));
 
         mHandler.post(new Runnable() {
             @Override
@@ -76,47 +78,34 @@ public class StuneService extends AccessibilityService {
             // so we need to reset after getting frametime stats.
             List<String> stats = runSU("dumpsys gfxinfo " + oldComponent.getPackageName(), reset);
 
-            int total = 0;
-            int janky = 0;
+            Algorithm.GfxInfo info = new Algorithm.GfxInfo();
             for (String line : stats) {
                 if (line.contains("Number Missed Vsync")) {
                     break;
                 }
+                String[] parse = line.split(":");
                 if (line.contains("Total frames rendered")) {
-                    String[] parse = line.split(":");
-                    total = Integer.valueOf(parse[1].trim());
+                    info.total = Integer.valueOf(parse[1].trim());
                 } else if (line.contains("Janky frames")) {
-                    String[] parse = line.split(":");
-                    janky = Integer.valueOf(parse[1].trim().split(" ")[0]);
+                    info.janky = Integer.valueOf(parse[1].trim().split(" ")[0]);
+                } else if (line.contains("90th percentile")) {
+                    info.perc90 = Integer.valueOf(parse[1].trim());
+                } else if (line.contains("95th percentile")) {
+                    info.perc95 = Integer.valueOf(parse[1].trim());
+                } else if (line.contains("99th percentile")) {
+                    info.perc99 = Integer.valueOf(parse[1].trim());
                 }
             }
 
-            if (total > 0) {
-                double jankFactor = (double) janky / total;
+            if (info.total > 0) {
+                Log.w(TAG, "Rendered " + info.total + " with " + info.janky + " janks (" +
+                        info.getJankFactor() + ") for " + oldComponent.flattenToShortString());
 
-                Log.w(TAG, "Rendered " + total + " with " + janky + " janks (" + jankFactor + ") for " +
-                        oldComponent.flattenToShortString());
+                float offset = Algorithm.getBoostOffset(info);
 
-                // Discard results if not enough information is collected.
-                if (total > Utilities.JANK_FACTOR_MIN_FRAMES) {
-                    int offset = 0;
-
-                    if (jankFactor >= Utilities.JANK_FACTOR_QUICK_BOOST) {
-                        offset = 5;
-                    } else if (jankFactor >= Utilities.JANK_FACTOR_STEADY_INCREASE) {
-                        offset = 1;
-                    } else if (jankFactor <= Utilities.JANK_FACTOR_STEADY_DECREASE) {
-                        offset = -1;
-                    }
-
-                    if (offset != 0) {
-                        int boost = Utilities.getBoost(this, oldComponent) + offset;
-                        boost = Math.max(Utilities.IDLE_BOOST, boost);
-                        boost = Math.min(Utilities.MAX_BOOST, boost);
-                        Utilities.setBoost(this, oldComponent, boost);
-
-                        Log.w(TAG, "Boost updated to " + boost + " for " + oldComponent.flattenToShortString());
-                    }
+                if (offset != 0) {
+                    float boost = Database.offsetBoost(this, oldComponent, offset);
+                    Log.w(TAG, "Boost updated to " + boost + " for " + oldComponent.flattenToShortString());
                 }
             }
         }
@@ -126,9 +115,9 @@ public class StuneService extends AccessibilityService {
         runSU("echo 1 > /sys/module/cpu_boost/parameters/input_boost_enabled",
                 "echo 1500 > /sys/module/cpu_boost/parameters/input_boost_ms",
                 "echo 0:1000000 1:0 2:1000000 3:0 > /sys/module/cpu_boost/parameters/input_boost_freq",
-                "echo " + Utilities.IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
+                "echo " + Database.IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
 
-        setDynamicStuneBoost(Utilities.DEFAULT_BOOST);
+        setDynamicStuneBoost(Database.getDefaultBoost(this));
     }
 
     private void setDynamicStuneBoost(int boost) {
