@@ -42,14 +42,10 @@ public class StuneService extends AccessibilityService {
                 new ComponentName(event.getPackageName().toString(),
                     event.getClassName().toString());
 
-        // If we are still in the same component, do not do anything.
-        if (newComponent.equals(mCurrentComponent)) {
-            return;
-        }
-
-        // If this is an overlay, do not do anything.
-        if (getPackageManager().resolveActivity(new Intent()
-                .setComponent(newComponent), 0) == null) {
+        // If we are still in the same component or this is an overlay, do not do anything.
+        if (newComponent.equals(mCurrentComponent) ||
+                getPackageManager().resolveActivity(new Intent()
+                    .setComponent(newComponent), 0) == null) {
             return;
         }
 
