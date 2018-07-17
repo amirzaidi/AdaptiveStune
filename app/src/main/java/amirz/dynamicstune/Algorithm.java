@@ -1,7 +1,11 @@
 package amirz.dynamicstune;
 
 public class Algorithm {
-    private static final int JANK_FACTOR_MIN_FRAMES = 90;
+    private static final int MIN_FRAMES = 90;
+
+    public static final double QUICK_BOOST = 0.35;
+    public static final double STEADY_INCREASE = 0.20;
+    public static final double STEADY_DECREASE = 0.05;
 
     public static class GfxInfo {
         public int total;
@@ -19,14 +23,14 @@ public class Algorithm {
         float offset = 0;
 
         // Discard results if not enough information is collected.
-        if (info.total > JANK_FACTOR_MIN_FRAMES) {
+        if (info.total > MIN_FRAMES) {
             double jankFactor = info.getJankFactor();
 
-            if (jankFactor >= Database.JANK_FACTOR_QUICK_BOOST) {
+            if (jankFactor >= QUICK_BOOST) {
                 offset = 5;
-            } else if (jankFactor >= Database.JANK_FACTOR_STEADY_INCREASE) {
+            } else if (jankFactor >= STEADY_INCREASE) {
                 offset = 1;
-            } else if (jankFactor <= Database.JANK_FACTOR_STEADY_DECREASE) {
+            } else if (jankFactor <= STEADY_DECREASE) {
                 offset = -1;
             }
         }

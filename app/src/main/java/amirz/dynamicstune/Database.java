@@ -9,10 +9,6 @@ public class Database {
     public static final int DEFAULT_BOOST = 20;
     public static final int MAX_BOOST = 50;
 
-    public static final double JANK_FACTOR_QUICK_BOOST = 0.35;
-    public static final double JANK_FACTOR_STEADY_INCREASE = 0.20;
-    public static final double JANK_FACTOR_STEADY_DECREASE = 0.05;
-
     private static final String PREFIX = "boost_";
     private static final String DEFAULT_BOOST_PREF = "default_boost";
 
