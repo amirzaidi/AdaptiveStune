@@ -34,7 +34,7 @@ public class Algorithm {
                 offset = -1;
             }
 
-            // This will vary between approximately 0 and 4
+            // This will vary between approximately 1 and 4
             offset *= Math.log10(info.total);
         }
 
