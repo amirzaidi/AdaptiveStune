@@ -13,7 +13,6 @@ public class Polynomial {
         }
     }
 
-
     private final double[] mCoefficients;
 
     // Source: http://www.bragitoff.com/2017/04/polynomial-fitting-java-codeprogram-works-android-well/
