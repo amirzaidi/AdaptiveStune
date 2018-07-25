@@ -121,8 +121,9 @@ public class StuneService extends AccessibilityService {
             // Do not print logs when there was not even a single frame captured.
             if (info.total > 0) {
                 Log.w(TAG, "Rendered " + info.total + " (" + Algorithm.parseJankFactor(info) +
-                        ") with " + info.janky + " perc (" + info.perc90 + "ms, " + info.perc95 +
-                        "ms, " + info.perc99 + "ms) for " +  oldComponent.flattenToShortString());
+                        ", " + Algorithm.parseDurationFactor(info) + ") with " + info.janky +
+                        " perc (" + info.perc90 + "ms, " + info.perc95 + "ms, " + info.perc99 +
+                        "ms) for " +  oldComponent.flattenToShortString());
 
                 mDB.insert(oldComponent, info);
                 mDB.clearOldResults();

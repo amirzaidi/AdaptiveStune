@@ -25,13 +25,17 @@ public class Algorithm {
     private static final int TARGET_FRAME_TIME_MS = 16;
 
     // ToDo: Make these constants tunable with a settings activity.
-    private static final double PERC_90_TARGET_WEIGHT = 0.05f;
-    private static final double PERC_95_TARGET_WEIGHT = 0.02f;
-    private static final double PERC_99_TARGET_WEIGHT = 0.01f;
+    private static final double PERC_90_TARGET_WEIGHT = 0.150f;
+    private static final double PERC_95_TARGET_WEIGHT = 0.010f;
+    private static final double PERC_99_TARGET_WEIGHT = 0.005f;
 
     // ToDo: Make these constants tunable with a settings activity.
     private static final int MIN_DATA_POINTS_PARABOLA = 5;
     private static final int MIN_DATA_POINTS_LINE = 3;
+
+    // ToDo: Make these constants tunable with a settings activity.
+    private static final double DURATION_COEFFICIENT = 0.15;
+    private static final double DURATION_POW = 0.4;
 
     /**
      * Subclass that acts as a data wrapper for a measurement or an aggregate of measurements.
@@ -99,16 +103,9 @@ public class Algorithm {
 
         // Fallback implementation when not enough data has been collected.
         // Adjust based on the last data point.
-        Measurement lastMeasurement = measurements.get(measurements.size() - 1);
-
-        // Get the jank factor from this data.
-        double jankFactor = parseJankFactor(lastMeasurement);
-        double offset = jankFactor - 0;
-
-        // This will vary between approximately 1 and 4
-        offset *= Math.log10(lastMeasurement.total);
-
-        return lastMeasurement.boost + (int) Math.round(offset);
+        Measurement lastMeasure = measurements.get(measurements.size() - 1);
+        double offset = parseJankFactor(lastMeasure) * parseDurationFactor(lastMeasure);
+        return lastMeasure.boost + (int) Math.round(offset);
     }
 
     private static boolean validBoost(double boost) {
@@ -123,42 +120,52 @@ public class Algorithm {
         }
 
         // Initialize all measurement sum objects.
-        SparseArray<Measurement> averages = new SparseArray<>();
+        SparseArray<Measurement> measurementSums = new SparseArray<>();
+        SparseArray<Double> totalDurationWeights = new SparseArray<>();
         for (int i = 0; i < boostCount.length; i++) {
             if (boostCount[i] != 0) {
-                averages.put(i, new Measurement(i));
+                measurementSums.put(i, new Measurement(i));
+                totalDurationWeights.put(i, 0d);
             }
         }
 
         // Count sums
         for (Measurement m : measurements) {
-            Measurement sum = averages.get(m.boost);
-            sum.total += m.total;
-            sum.janky += m.janky;
-            sum.perc90 += m.perc90;
-            sum.perc95 += m.perc95;
-            sum.perc99 += m.perc99;
+            double durationWeight = parseDurationFactor(m);
+
+            Measurement sum = measurementSums.get(m.boost);
+            sum.total += m.total * durationWeight;
+            sum.janky += m.janky * durationWeight;
+            sum.perc90 += m.perc90 * durationWeight;
+            sum.perc95 += m.perc95 * durationWeight;
+            sum.perc99 += m.perc99 * durationWeight;
+
+            totalDurationWeights.put(m.boost, totalDurationWeights.get(m.boost) + durationWeight);
         }
 
         // Normalize to averages
-        for (int i = 0; i < averages.size(); i++) {
-            Measurement sum = averages.get(i);
-            int count = boostCount[sum.boost];
-            sum.total /= count;
-            sum.janky /= count;
-            sum.perc90 /= count;
-            sum.perc95 /= count;
-            sum.perc99 /= count;
+        for (int i = 0; i < measurementSums.size(); i++) {
+            double totalDurationWeight = totalDurationWeights.valueAt(i);
+
+            Measurement sum = measurementSums.valueAt(i);
+            sum.total /= totalDurationWeight;
+            sum.janky /= totalDurationWeight;
+            sum.perc90 /= totalDurationWeight;
+            sum.perc95 /= totalDurationWeight;
+            sum.perc99 /= totalDurationWeight;
         }
 
-        return averages;
+        return measurementSums;
     }
 
     public static double parseJankFactor(Measurement measurement) {
-        double factor = measurement.janky / measurement.total;
-        factor += (measurement.perc90 - TARGET_FRAME_TIME_MS) * PERC_90_TARGET_WEIGHT;
-        factor += (measurement.perc95 - TARGET_FRAME_TIME_MS) * PERC_95_TARGET_WEIGHT;
-        factor += (measurement.perc99 - TARGET_FRAME_TIME_MS) * PERC_99_TARGET_WEIGHT;
-        return factor;
+        return measurement.janky / measurement.total +
+                (measurement.perc90 - TARGET_FRAME_TIME_MS) * PERC_90_TARGET_WEIGHT +
+                (measurement.perc95 - TARGET_FRAME_TIME_MS) * PERC_95_TARGET_WEIGHT +
+                (measurement.perc99 - TARGET_FRAME_TIME_MS) * PERC_99_TARGET_WEIGHT;
+    }
+
+    public static double parseDurationFactor(Measurement measurement) {
+        return DURATION_COEFFICIENT * Math.pow(measurement.total, DURATION_POW);
     }
 }
