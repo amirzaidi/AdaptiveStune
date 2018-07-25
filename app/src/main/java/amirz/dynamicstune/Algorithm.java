@@ -84,12 +84,12 @@ public class Algorithm {
 
             // Never extrapolate, only interpolate.
             if (intersect.length > 0 && between(intersect[0], minMeasuredBoost, maxMeasuredBoost)) {
-                Log.w(TAG, "Parabola fitting result 1: boost = " + intersect[0]);
+                Log.d(TAG, "Parabola fitting result 1: boost = " + intersect[0]);
                 return (int) Math.round(intersect[0]);
             }
 
             if (intersect.length == 2 && between(intersect[1], minMeasuredBoost, maxMeasuredBoost)) {
-                Log.w(TAG, "Parabola fitting result 2: boost = " + intersect[1]);
+                Log.d(TAG, "Parabola fitting result 2: boost = " + intersect[1]);
                 return (int) Math.round(intersect[1]);
             }
         }
@@ -103,9 +103,9 @@ public class Algorithm {
                 double b = line.getCoefficient(0);
                 double intersect = Line.intersect(a, b, 0);
 
-                Log.w(TAG, "Line fitting: " + a + " " + b);
+                Log.d(TAG, "Line fitting: " + a + " " + b);
                 if (between(intersect, minMeasuredBoost, maxMeasuredBoost)) {
-                    Log.w(TAG, "Line fitting result: boost = " + intersect);
+                    Log.d(TAG, "Line fitting result: boost = " + intersect);
                     return (int) Math.round(intersect);
                 }
             }
@@ -164,6 +164,12 @@ public class Algorithm {
         return measurementSums;
     }
 
+    /**
+     * Converts a measurement into a single factor that judges the smoothness.
+     * @param measurement The measurement from which to create a factor.
+     * @return Zero when the frame rate is equal to the target.
+     * A positive value when it is too janky, a negative value when it is too smooth.
+     */
     public static double parseJankFactor(Measurement measurement) {
         return measurement.janky / measurement.total +
                 (measurement.perc90 - TARGET_FRAME_TIME_MS) * PERC_90_TARGET_WEIGHT +

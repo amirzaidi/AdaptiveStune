@@ -7,24 +7,30 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.util.Log;
+import android.util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import amirz.dynamicstune.Algorithm;
 
 public class MeasureDB {
-    public static class Entry implements BaseColumns {
-        public static final String TABLE_NAME = "measurement";
+    private static final String TAG = "MeasureDB";
 
-        public static final String COL_PACKAGE = "package_name";
-        public static final String COL_COMPONENT = "component_name";
-        public static final String COL_BOOST = "boost";
-        public static final String COL_FRAMES = "frames";
-        public static final String COL_JANKS = "janks";
-        public static final String COL_PERC_90 = "percentile_90";
-        public static final String COL_PERC_95 = "percentile_95";
-        public static final String COL_PERC_99 = "percentile_99";
+    private static class Entry implements BaseColumns {
+        private static final String TABLE_NAME = "measurement";
+
+        private static final String COL_PACKAGE = "package_name";
+        private static final String COL_COMPONENT = "component_name";
+        private static final String COL_BOOST = "boost";
+        private static final String COL_FRAMES = "frames";
+        private static final String COL_JANKS = "janks";
+        private static final String COL_PERC_90 = "percentile_90";
+        private static final String COL_PERC_95 = "percentile_95";
+        private static final String COL_PERC_99 = "percentile_99";
     }
 
     private static final String CREATE =
@@ -43,6 +49,7 @@ public class MeasureDB {
             "DROP TABLE IF EXISTS " + Entry.TABLE_NAME;
 
     private static final String[] RESULT_PROJECTION = {
+            Entry._ID,
             Entry.COL_BOOST,
             Entry.COL_FRAMES,
             Entry.COL_JANKS,
@@ -51,7 +58,8 @@ public class MeasureDB {
             Entry.COL_PERC_99
     };
 
-    private static final int RESULT_COUNT = 30;
+    private static final int COMPONENT_MAX_RESULTS = 75;
+    private static final int COMPONENT_RESULT_TARGET = 50;
 
     private final Helper mHelper;
     private boolean mClosed;
@@ -81,48 +89,35 @@ public class MeasureDB {
     }
 
     public List<Algorithm.Measurement> select(ComponentName componentName) {
-        List<Algorithm.Measurement> results = new ArrayList<>();
-        if (!mClosed) {
-            SQLiteDatabase db = mHelper.getReadableDatabase();
+        List<Algorithm.Measurement> results = select(Entry.COL_COMPONENT + " = ?",
+                new String[] { componentName.flattenToString() });
 
-            try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION,
-                    Entry.COL_COMPONENT + " = ?", new String[] { componentName.flattenToString() },
-                    null, null, null
-            )) {
-                while (cursor.moveToNext()) {
-                    results.add(readMeasurement(cursor));
-                }
-            }
+        if (results.size() >= COMPONENT_MAX_RESULTS) {
+            deleteObsoleteResults(componentName);
         }
+
         return results;
     }
-
 
     public List<Algorithm.Measurement> select(String packageName) {
+        return select(Entry.COL_PACKAGE + " = ?",
+                new String[] { packageName });
+    }
+
+    private List<Algorithm.Measurement> select(String where, String[] args) {
         List<Algorithm.Measurement> results = new ArrayList<>();
         if (!mClosed) {
             SQLiteDatabase db = mHelper.getReadableDatabase();
 
-            try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION,
-                    Entry.COL_PACKAGE + " = ?", new String[] { packageName },
+            try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION, where, args,
                     null, null, null
             )) {
                 while (cursor.moveToNext()) {
-                    results.add(readMeasurement(cursor));
+                    results.add(readMeasurement(cursor).second);
                 }
             }
         }
         return results;
-    }
-
-    public void clearOldResults() {
-        /*if (!mClosed) {
-            SQLiteDatabase db = mHelper.getWritableDatabase();
-            db.execSQL("DELETE FROM " + Entry.TABLE_NAME +
-                    " ORDER BY " + Entry._ID + " DESC" +
-                    " LIMIT -1" +
-                    " OFFSET " + RESULT_COUNT);
-        }*/
     }
 
     public void close() {
@@ -130,7 +125,7 @@ public class MeasureDB {
         mHelper.close();
     }
 
-    private Algorithm.Measurement readMeasurement(Cursor cursor) {
+    private Pair<Long, Algorithm.Measurement> readMeasurement(Cursor cursor) {
         Algorithm.Measurement measurement = new Algorithm.Measurement(
                 cursor.getInt(cursor.getColumnIndexOrThrow(Entry.COL_BOOST)));
         measurement.total = cursor.getInt(cursor.getColumnIndexOrThrow(Entry.COL_FRAMES));
@@ -138,7 +133,35 @@ public class MeasureDB {
         measurement.perc90 = cursor.getInt(cursor.getColumnIndexOrThrow(Entry.COL_PERC_90));
         measurement.perc95 = cursor.getInt(cursor.getColumnIndexOrThrow(Entry.COL_PERC_95));
         measurement.perc99 = cursor.getInt(cursor.getColumnIndexOrThrow(Entry.COL_PERC_99));
-        return measurement;
+        return new Pair<>(cursor.getLong(cursor.getColumnIndexOrThrow(Entry._ID)), measurement);
+    }
+
+    private void deleteObsoleteResults(ComponentName componentName) {
+        SQLiteDatabase db = mHelper.getWritableDatabase();
+
+        Set<Long> removeIds = new HashSet<>();
+
+        int i = 0;
+        try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION,
+                Entry.COL_COMPONENT + " = ?", new String[] { componentName.flattenToString() },
+                null, null, Entry._ID + " DESC"
+        )) {
+            while (cursor.moveToNext()) {
+                if (i++ >= COMPONENT_RESULT_TARGET) {
+                    removeIds.add(readMeasurement(cursor).first);
+                }
+            }
+        }
+
+        for (long removeId : removeIds) {
+            db.delete(Entry.TABLE_NAME, Entry._ID + " = ?",
+                    new String[] { String.valueOf(removeId) });
+        }
+
+        if (removeIds.size() > 0) {
+            Log.e(TAG, "Cleared " + removeIds.size() +
+                    " results for " + componentName.flattenToString());
+        }
     }
 
     public static class Helper extends SQLiteOpenHelper {

@@ -94,9 +94,11 @@ public class StuneService extends AccessibilityService {
         if (oldComponent == null) {
             runSU(reset);
         } else {
+            String packageName = oldComponent.getPackageName();
+
             // It is possible that the new package name is the same,
             // so we need to reset after getting frametime stats.
-            List<String> stats = runSU("dumpsys gfxinfo " + oldComponent.getPackageName(), reset);
+            List<String> stats = runSU("dumpsys gfxinfo " + packageName, reset);
 
             Algorithm.Measurement info = new Algorithm.Measurement(BoostDB.getBoostInt(this, oldComponent));
             for (String line : stats) {
@@ -126,10 +128,9 @@ public class StuneService extends AccessibilityService {
                         "ms) for " +  oldComponent.flattenToShortString());
 
                 mDB.insert(oldComponent, info);
-                mDB.clearOldResults();
 
                 int componentBoost = Algorithm.getBoost(mDB.select(oldComponent));
-                int packageBoost = Algorithm.getBoost(mDB.select(oldComponent.getPackageName()));
+                int packageBoost = Algorithm.getBoost(mDB.select(packageName));
 
                 BoostDB.setBoost(this, oldComponent, componentBoost, packageBoost);
 
