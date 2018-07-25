@@ -14,13 +14,20 @@ import amirz.dynamicstune.math.Polynomial;
 public class Algorithm {
     private static final String TAG = "Algorithm";
 
-    private static final double STEADY_INCREASE = 0.20;
-    private static final double STEADY_DECREASE = 0.05;
-
     private static final int DATA_POINTS_PARABOLA = 5;
     private static final int DATA_POINTS_LINE = 3;
 
-    private static final double JANK_FACTOR_TARGET = 0.1;
+    private static final double JANK_FACTOR_TARGET;
+
+    static {
+        Measurement measurement = new Measurement(0);
+        measurement.total = 10;
+        measurement.janky = 1;
+        measurement.perc90 = 16;
+        measurement.perc95 = 32;
+        measurement.perc99 = 64;
+        JANK_FACTOR_TARGET = parseJankFactor(measurement);
+    }
 
     public static class Measurement {
         public final int boost;
@@ -33,10 +40,6 @@ public class Algorithm {
         public Measurement(int boost) {
             this.boost = boost;
         }
-
-        public double getJankFactor() {
-            return janky / total;
-        }
     }
 
     public static int getBoost(List<Measurement> measurements) {
@@ -45,8 +48,7 @@ public class Algorithm {
 
         List<Polynomial.Point> points = new ArrayList<>();
         for (int i = 0; i < averages.size(); i++) {
-            double smoothnessFactor = averages.valueAt(i).getJankFactor();
-            points.add(new Polynomial.Point(averages.keyAt(i), smoothnessFactor));
+            points.add(new Polynomial.Point(averages.keyAt(i), parseJankFactor(averages.valueAt(i))));
         }
 
         if (averages.size() >= DATA_POINTS_PARABOLA) {
@@ -91,29 +93,19 @@ public class Algorithm {
         // Adjust based on the last data point.
         Measurement lastMeasurement = measurements.get(measurements.size() - 1);
 
-        float offset = 0;
-        double jankFactor = lastMeasurement.getJankFactor();
-
-        if (lastMeasurement.perc90 > 16) {
-            // 90% needs to be at least 60FPS
-            offset = 1f;
-        } else if (jankFactor >= STEADY_INCREASE || lastMeasurement.perc95 > 16) {
-            // Try to get 95% to 60FPS too
-            offset = 0.5f;
-        } else if (jankFactor <= STEADY_DECREASE || lastMeasurement.perc99 <= 33) {
-            // Having only 1% at 30FPS is acceptable
-            offset = -0.5f;
-        }
+        // Get the jank factor from this data.
+        double jankFactor = parseJankFactor(lastMeasurement);
+        double offset = jankFactor - JANK_FACTOR_TARGET;
 
         // This will vary between approximately 1 and 4
         offset *= Math.log10(lastMeasurement.total);
 
-        return lastMeasurement.boost + Math.round(offset);
+        return lastMeasurement.boost + (int) Math.round(offset);
     }
 
     private static boolean validBoost(double boost) {
-            return boost >= BoostDB.IDLE_BOOST && boost <= BoostDB.MAX_BOOST;
-        }
+        return boost >= BoostDB.IDLE_BOOST && boost <= BoostDB.MAX_BOOST;
+    }
 
     private static SparseArray<Measurement> avg(List<Measurement> measurements) {
         int[] boostCount = new int[BoostDB.MAX_BOOST + 1];
@@ -154,5 +146,13 @@ public class Algorithm {
         }
 
         return averages;
+    }
+
+    private static double parseJankFactor(Measurement measurement) {
+        double factor = measurement.total / measurement.janky;
+        factor += (measurement.perc90 - 16);
+        factor += (measurement.perc95 - 16) * 0.5f;
+        factor += (measurement.perc99 - 32) * 0.25f;
+        return factor;
     }
 }
