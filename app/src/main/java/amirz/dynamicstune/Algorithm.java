@@ -8,7 +8,6 @@ import java.util.List;
 
 import amirz.dynamicstune.database.BoostDB;
 import amirz.dynamicstune.math.Line;
-import amirz.dynamicstune.math.MathUtils;
 import amirz.dynamicstune.math.Parabola;
 import amirz.dynamicstune.math.Polynomial;
 
