@@ -98,12 +98,13 @@ public class Algorithm {
             Polynomial line = new Polynomial(points, 1);
 
             double a = line.getCoefficient(1);
+            double b = line.getCoefficient(0);
+
+            Log.d(TAG, "Line fitting: " + a + " " + b);
+
             // Line data does not make sense if this is not positive.
             if (a > 0) {
-                double b = line.getCoefficient(0);
                 double intersect = Line.intersect(a, b, 0);
-
-                Log.d(TAG, "Line fitting: " + a + " " + b);
                 if (between(intersect, minMeasuredBoost, maxMeasuredBoost)) {
                     Log.d(TAG, "Line fitting result: boost = " + intersect);
                     return (int) Math.round(intersect);
