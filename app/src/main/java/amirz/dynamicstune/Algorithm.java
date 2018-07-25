@@ -11,24 +11,31 @@ import amirz.dynamicstune.math.Line;
 import amirz.dynamicstune.math.Parabola;
 import amirz.dynamicstune.math.Polynomial;
 
+/**
+ * This class takes measurements into account and returns a new boost value to try.
+ * From that selected boost value new measurements are done, and eventually all data is
+ * inserted into a polynomial. The class then selects a boost from this polynomial.
+ * The goal is to get the parseJankFactor method to return zero, meaning, there is no jank.
+ * Note that this does not directly imply there are no frame drops, but that they are insignificant.
+ */
 public class Algorithm {
     private static final String TAG = "Algorithm";
 
-    private static final int DATA_POINTS_PARABOLA = 5;
-    private static final int DATA_POINTS_LINE = 3;
+    // Frame time target for all percentiles.
+    private static final int TARGET_FRAME_TIME_MS = 16;
 
-    private static final double JANK_FACTOR_TARGET;
+    // ToDo: Make these constants tunable with a settings activity.
+    private static final double PERC_90_TARGET_WEIGHT = 0.05f;
+    private static final double PERC_95_TARGET_WEIGHT = 0.02f;
+    private static final double PERC_99_TARGET_WEIGHT = 0.01f;
 
-    static {
-        Measurement measurement = new Measurement(0);
-        measurement.total = 10;
-        measurement.janky = 1;
-        measurement.perc90 = 16;
-        measurement.perc95 = 32;
-        measurement.perc99 = 64;
-        JANK_FACTOR_TARGET = parseJankFactor(measurement);
-    }
+    // ToDo: Make these constants tunable with a settings activity.
+    private static final int MIN_DATA_POINTS_PARABOLA = 5;
+    private static final int MIN_DATA_POINTS_LINE = 3;
 
+    /**
+     * Subclass that acts as a data wrapper for a measurement or an aggregate of measurements.
+     */
     public static class Measurement {
         public final int boost;
         public double total;
@@ -46,17 +53,18 @@ public class Algorithm {
         SparseArray<Measurement> averages = avg(measurements);
         Log.d(TAG, "Boost measurements " + averages.size() + " (" + measurements.size() + " total)");
 
+        // Transform the data set into points for the Polynomial class.
         List<Polynomial.Point> points = new ArrayList<>();
         for (int i = 0; i < averages.size(); i++) {
             points.add(new Polynomial.Point(averages.keyAt(i), parseJankFactor(averages.valueAt(i))));
         }
 
-        if (averages.size() >= DATA_POINTS_PARABOLA) {
+        if (averages.size() >= MIN_DATA_POINTS_PARABOLA) {
             Polynomial parabola = new Polynomial(points, 2);
             double a = parabola.getCoefficient(2);
             double b = parabola.getCoefficient(1);
             double c = parabola.getCoefficient(0);
-            double[] intersect = Parabola.intersect(a, b, c, JANK_FACTOR_TARGET);
+            double[] intersect = Parabola.intersect(a, b, c, 0);
 
             Log.w(TAG, "Parabola fitting: " + a + " " + b + " " + c);
             if (intersect.length != 0) {
@@ -72,14 +80,14 @@ public class Algorithm {
             }
         }
 
-        if (averages.size() >= DATA_POINTS_LINE) {
+        if (averages.size() >= MIN_DATA_POINTS_LINE) {
             Polynomial line = new Polynomial(points, 1);
 
             double a = line.getCoefficient(1);
             // Line data does not make sense if this is not positive.
             if (a > 0) {
                 double b = line.getCoefficient(0);
-                double intersect = Line.intersect(a, b, JANK_FACTOR_TARGET);
+                double intersect = Line.intersect(a, b, 0);
 
                 Log.w(TAG, "Line fitting: " + a + " " + b);
                 if (intersect != Double.NaN) {
@@ -95,7 +103,7 @@ public class Algorithm {
 
         // Get the jank factor from this data.
         double jankFactor = parseJankFactor(lastMeasurement);
-        double offset = jankFactor - JANK_FACTOR_TARGET;
+        double offset = jankFactor - 0;
 
         // This will vary between approximately 1 and 4
         offset *= Math.log10(lastMeasurement.total);
@@ -108,14 +116,14 @@ public class Algorithm {
     }
 
     private static SparseArray<Measurement> avg(List<Measurement> measurements) {
+        // Could be optimized by shifting down with BoostDB.IDLE_BOOST.
         int[] boostCount = new int[BoostDB.MAX_BOOST + 1];
         for (Measurement m : measurements) {
             boostCount[m.boost]++;
         }
 
-        SparseArray<Measurement> averages = new SparseArray<>();
-
         // Initialize all measurement sum objects.
+        SparseArray<Measurement> averages = new SparseArray<>();
         for (int i = 0; i < boostCount.length; i++) {
             if (boostCount[i] != 0) {
                 averages.put(i, new Measurement(i));
@@ -133,26 +141,24 @@ public class Algorithm {
         }
 
         // Normalize to averages
-        for (int i = 0; i < boostCount.length; i++) {
-            int count = boostCount[i];
-            if (count != 0) {
-                Measurement sum = averages.get(i);
-                sum.total /= count;
-                sum.janky /= count;
-                sum.perc90 /= count;
-                sum.perc95 /= count;
-                sum.perc99 /= count;
-            }
+        for (int i = 0; i < averages.size(); i++) {
+            Measurement sum = averages.get(i);
+            int count = boostCount[sum.boost];
+            sum.total /= count;
+            sum.janky /= count;
+            sum.perc90 /= count;
+            sum.perc95 /= count;
+            sum.perc99 /= count;
         }
 
         return averages;
     }
 
     public static double parseJankFactor(Measurement measurement) {
-        double factor = measurement.total / measurement.janky;
-        factor += (measurement.perc90 - 16) * 0.1f;
-        factor += (measurement.perc95 - 16) * 0.05f;
-        factor += (measurement.perc99 - 32) * 0.025f;
+        double factor = measurement.janky / measurement.total;
+        factor += (measurement.perc90 - TARGET_FRAME_TIME_MS) * PERC_90_TARGET_WEIGHT;
+        factor += (measurement.perc95 - TARGET_FRAME_TIME_MS) * PERC_95_TARGET_WEIGHT;
+        factor += (measurement.perc99 - TARGET_FRAME_TIME_MS) * PERC_99_TARGET_WEIGHT;
         return factor;
     }
 }
