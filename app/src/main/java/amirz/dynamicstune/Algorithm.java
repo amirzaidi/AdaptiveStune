@@ -8,8 +8,11 @@ import java.util.List;
 
 import amirz.dynamicstune.database.BoostDB;
 import amirz.dynamicstune.math.Line;
+import amirz.dynamicstune.math.MathUtils;
 import amirz.dynamicstune.math.Parabola;
 import amirz.dynamicstune.math.Polynomial;
+
+import static amirz.dynamicstune.math.MathUtils.between;
 
 /**
  * This class takes measurements into account and returns a new boost value to try.
@@ -58,9 +61,16 @@ public class Algorithm {
         Log.d(TAG, "Boost measurements " + averages.size() + " (" + measurements.size() + " total)");
 
         // Transform the data set into points for the Polynomial class.
+        // Save the min and max for further value checking.
         List<Polynomial.Point> points = new ArrayList<>();
+        double minMeasuredBoost = BoostDB.MAX_BOOST;
+        double maxMeasuredBoost = BoostDB.IDLE_BOOST;
         for (int i = 0; i < averages.size(); i++) {
-            points.add(new Polynomial.Point(averages.keyAt(i), parseJankFactor(averages.valueAt(i))));
+            Polynomial.Point p = new Polynomial.Point(averages.keyAt(i),
+                    parseJankFactor(averages.valueAt(i)));
+            minMeasuredBoost = Math.min(minMeasuredBoost, p.x);
+            maxMeasuredBoost = Math.max(maxMeasuredBoost, p.x);
+            points.add(p);
         }
 
         if (averages.size() >= MIN_DATA_POINTS_PARABOLA) {
@@ -71,16 +81,16 @@ public class Algorithm {
             double[] intersect = Parabola.intersect(a, b, c, 0);
 
             Log.w(TAG, "Parabola fitting: " + a + " " + b + " " + c);
-            if (intersect.length != 0) {
-                if (validBoost(intersect[0])) {
-                    Log.w(TAG, "Parabola fitting result 1: boost = " + intersect[0]);
-                    return (int) Math.round(intersect[0]);
-                }
 
-                if (intersect.length == 2 && validBoost(intersect[1])) {
-                    Log.w(TAG, "Parabola fitting result 2: boost = " + intersect[1]);
-                    return (int) Math.round(intersect[1]);
-                }
+            // Never extrapolate, only interpolate.
+            if (intersect.length > 0 && between(intersect[0], minMeasuredBoost, maxMeasuredBoost)) {
+                Log.w(TAG, "Parabola fitting result 1: boost = " + intersect[0]);
+                return (int) Math.round(intersect[0]);
+            }
+
+            if (intersect.length == 2 && between(intersect[1], minMeasuredBoost, maxMeasuredBoost)) {
+                Log.w(TAG, "Parabola fitting result 2: boost = " + intersect[1]);
+                return (int) Math.round(intersect[1]);
             }
         }
 
@@ -94,7 +104,7 @@ public class Algorithm {
                 double intersect = Line.intersect(a, b, 0);
 
                 Log.w(TAG, "Line fitting: " + a + " " + b);
-                if (intersect != Double.NaN) {
+                if (between(intersect, minMeasuredBoost, maxMeasuredBoost)) {
                     Log.w(TAG, "Line fitting result: boost = " + intersect);
                     return (int) Math.round(intersect);
                 }
@@ -106,10 +116,6 @@ public class Algorithm {
         Measurement lastMeasure = measurements.get(measurements.size() - 1);
         double offset = parseJankFactor(lastMeasure) * parseDurationFactor(lastMeasure);
         return lastMeasure.boost + (int) Math.round(offset);
-    }
-
-    private static boolean validBoost(double boost) {
-        return boost >= BoostDB.IDLE_BOOST && boost <= BoostDB.MAX_BOOST;
     }
 
     private static SparseArray<Measurement> avg(List<Measurement> measurements) {
