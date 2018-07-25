@@ -1,4 +1,4 @@
-package amirz.dynamicstune;
+package amirz.dynamicstune.database;
 
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -10,6 +10,8 @@ import android.provider.BaseColumns;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import amirz.dynamicstune.Algorithm;
 
 public class MeasureDB {
     public static class Entry implements BaseColumns {

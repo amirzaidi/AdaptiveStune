@@ -1,4 +1,4 @@
-package amirz.dynamicstune;
+package amirz.dynamicstune.database;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -6,8 +6,9 @@ import android.content.SharedPreferences;
 
 public class BoostDB {
     public static final int IDLE_BOOST = 5;
-    public static final int DEFAULT_BOOST = 20;
     public static final int MAX_BOOST = 50;
+
+    private static final int DEFAULT_BOOST = 20;
 
     private static final String PREFIX = "boost_";
     private static final String DEFAULT_BOOST_PREF = "default_boost";

@@ -12,6 +12,9 @@ import com.topjohnwu.superuser.Shell;
 
 import java.util.List;
 
+import amirz.dynamicstune.database.BoostDB;
+import amirz.dynamicstune.database.MeasureDB;
+
 public class StuneService extends AccessibilityService {
     private static final String TAG = "StuneService";
 

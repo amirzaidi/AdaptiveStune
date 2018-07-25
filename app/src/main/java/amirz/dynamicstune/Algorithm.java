@@ -5,6 +5,8 @@ import android.util.SparseArray;
 
 import java.util.List;
 
+import amirz.dynamicstune.database.BoostDB;
+
 public class Algorithm {
     private static final String TAG = "Algorithm";
 

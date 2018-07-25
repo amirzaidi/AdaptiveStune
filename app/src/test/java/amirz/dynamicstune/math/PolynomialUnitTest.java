@@ -1,4 +1,4 @@
-package amirz.dynamicstune;
+package amirz.dynamicstune.math;
 
 import org.junit.Test;
 
