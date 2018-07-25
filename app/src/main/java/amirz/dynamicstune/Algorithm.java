@@ -148,7 +148,7 @@ public class Algorithm {
         return averages;
     }
 
-    private static double parseJankFactor(Measurement measurement) {
+    public static double parseJankFactor(Measurement measurement) {
         double factor = measurement.total / measurement.janky;
         factor += (measurement.perc90 - 16) * 0.1f;
         factor += (measurement.perc95 - 16) * 0.05f;
