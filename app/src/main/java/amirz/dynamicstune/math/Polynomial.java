@@ -24,7 +24,7 @@ public class Polynomial {
         for (int i = 0; i < 2 * n + 1; i++) {
             X[i] = 0;
             for (int j = 0; j < N; j++) {
-                X[i] = X[i] + Math.pow(points.get(j).x, i);
+                X[i] += Math.pow(points.get(j).x, i);
             }
         }
 
