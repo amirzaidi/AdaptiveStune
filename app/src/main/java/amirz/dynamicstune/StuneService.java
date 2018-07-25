@@ -16,6 +16,7 @@ public class StuneService extends AccessibilityService {
     private static final String TAG = "StuneService";
 
     private Handler mHandler;
+    private MeasureDB mDB;
 
     // Save boost so we only write on change
     private int mCurrentBoost = -1;
@@ -25,6 +26,9 @@ public class StuneService extends AccessibilityService {
     @Override
     public void onServiceConnected() {
         mHandler = new Handler();
+        mDB = new MeasureDB(new MeasureDB.Helper(this));
+
+        setDynamicStuneBoost(BoostDB.getDefaultBoost(this));
 
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
@@ -34,6 +38,12 @@ public class StuneService extends AccessibilityService {
         setServiceInfo(info);
 
         setDefaultParams();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mDB.close();
     }
 
     @Override
@@ -55,7 +65,7 @@ public class StuneService extends AccessibilityService {
             mCurrentTime = System.currentTimeMillis();
 
             Log.w(TAG, "Detected launch of " + mCurrentComponent.flattenToShortString());
-            setDynamicStuneBoost(Database.getBoostInt(this, mCurrentComponent));
+            setDynamicStuneBoost(BoostDB.getBoostInt(this, mCurrentComponent));
 
             mHandler.post(new Runnable() {
                 @Override
@@ -85,7 +95,7 @@ public class StuneService extends AccessibilityService {
             // so we need to reset after getting frametime stats.
             List<String> stats = runSU("dumpsys gfxinfo " + oldComponent.getPackageName(), reset);
 
-            Algorithm.GfxInfo info = new Algorithm.GfxInfo();
+            Algorithm.Measurement info = new Algorithm.Measurement(BoostDB.getBoostInt(this, oldComponent));
             for (String line : stats) {
                 if (line.contains("Number Missed Vsync")) {
                     break;
@@ -111,12 +121,16 @@ public class StuneService extends AccessibilityService {
                         info.getJankFactor() + ") perc (" + info.perc90 + "ms, " + info.perc95 +
                         "ms, " + info.perc99 + "ms) for " +  oldComponent.flattenToShortString());
 
-                float offset = Algorithm.getBoostOffset(info);
-                if (offset != 0) {
-                    float boost = Database.offsetBoost(this, oldComponent, offset);
-                    Log.w(TAG, "Boost updated to " + boost + " (" + (offset >= 0 ? "+" : "") +
-                            offset + ") for " + oldComponent.flattenToShortString());
-                }
+                mDB.insert(oldComponent, info);
+                mDB.clearOldResults();
+
+                int componentBoost = Algorithm.getBoost(mDB.select(oldComponent));
+                int packageBoost = Algorithm.getBoost(mDB.select(oldComponent.getPackageName()));
+
+                BoostDB.setBoost(this, oldComponent, componentBoost, packageBoost);
+
+                Log.w(TAG, "Boost updated to " + componentBoost + "/" + packageBoost +
+                        " for " + oldComponent.flattenToShortString());
             }
         }
     }
@@ -125,9 +139,9 @@ public class StuneService extends AccessibilityService {
         runSU("echo 1 > /sys/module/cpu_boost/parameters/input_boost_enabled",
                 "echo 1500 > /sys/module/cpu_boost/parameters/input_boost_ms",
                 "echo 0:1000000 1:0 2:1000000 3:0 > /sys/module/cpu_boost/parameters/input_boost_freq",
-                "echo " + Database.IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
+                "echo " + BoostDB.IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
 
-        setDynamicStuneBoost(Database.getDefaultBoost(this));
+        setDynamicStuneBoost(BoostDB.getDefaultBoost(this));
     }
 
     private void setDynamicStuneBoost(int boost) {

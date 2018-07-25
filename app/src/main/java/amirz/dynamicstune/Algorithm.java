@@ -1,45 +1,73 @@
 package amirz.dynamicstune;
 
+import android.util.Log;
+import android.util.SparseArray;
+
+import java.util.List;
+
 public class Algorithm {
-    private static final int MIN_FRAMES = 90;
+    private static final String TAG = "Algorithm";
 
-    private static final double STEADY_INCREASE = 0.20;
-    private static final double STEADY_DECREASE = 0.05;
+    public static class Measurement {
+        public final int boost;
+        public double total;
+        public double janky;
+        public double perc90;
+        public double perc95;
+        public double perc99;
 
-    public static class GfxInfo {
-        public int total;
-        public int janky;
-        public int perc90;
-        public int perc95;
-        public int perc99;
+        public Measurement(int boost) {
+            this.boost = boost;
+        }
 
         public double getJankFactor() {
-            return (double) janky / total;
+            return janky / total;
         }
     }
 
-    public static float getBoostOffset(GfxInfo info) {
-        float offset = 0;
+    public static int getBoost(List<Measurement> measurements) {
+        Log.d(TAG, "Measurement count " + measurements.size());
 
-        // Discard results if not enough information is collected.
-        if (info.total > MIN_FRAMES) {
-            double jankFactor = info.getJankFactor();
-
-            if (info.perc90 > 16) {
-                // 90% needs to be at least 60FPS
-                offset = 5f;
-            } else if (jankFactor >= STEADY_INCREASE || info.perc95 > 16) {
-                // Try to get 95% to 60FPS too
-                offset = 0.5f;
-            } else if (jankFactor <= STEADY_DECREASE || info.perc99 <= 33) {
-                // Having only 1% at 30FPS is acceptable
-                offset = -0.5f;
-            }
-
-            // This will vary between approximately 1 and 4
-            offset *= Math.log10(info.total);
+        int[] boostCount = new int[BoostDB.MAX_BOOST + 1];
+        for (Measurement m : measurements) {
+            boostCount[m.boost]++;
         }
 
-        return offset;
+        SparseArray<Measurement> sums = new SparseArray<>();
+
+        // Initialize all measurement sum objects.
+        for (int i = 0; i < boostCount.length; i++) {
+            if (boostCount[i] != 0) {
+                sums.put(i, new Measurement(i));
+            }
+        }
+
+        // Count sums
+        for (Measurement m : measurements) {
+            Measurement sum = sums.get(m.boost);
+            sum.total += m.total;
+            sum.janky += m.janky;
+            sum.perc90 += m.perc90;
+            sum.perc95 += m.perc95;
+            sum.perc99 += m.perc99;
+        }
+
+        // Normalize to averages
+        for (int i = 0; i < boostCount.length; i++) {
+            int count = boostCount[i];
+            if (count != 0) {
+                Measurement sum = sums.get(i);
+                sum.total /= count;
+                sum.janky /= count;
+                sum.perc90 /= count;
+                sum.perc95 /= count;
+                sum.perc99 /= count;
+            }
+        }
+
+
+
+        // ToDo: Use results
+        return measurements.get(0).boost;
     }
 }

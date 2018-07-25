@@ -4,7 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class Database {
+public class BoostDB {
     public static final int IDLE_BOOST = 5;
     public static final int DEFAULT_BOOST = 20;
     public static final int MAX_BOOST = 50;
@@ -40,22 +40,19 @@ public class Database {
         return Math.round(getBoost(context, component));
     }
 
-    public static float offsetBoost(Context context, ComponentName component, float offset) {
-        // Previous boost
-        float boost = Database.getBoost(context, component) + offset;
-
+    public static void setBoost(Context context, ComponentName component, int componentBoost, int packageBoost) {
         // Ensure within bounds
-        boost = Math.max(Database.IDLE_BOOST, boost);
-        boost = Math.min(Database.MAX_BOOST, boost);
+        componentBoost = Math.max(BoostDB.IDLE_BOOST, componentBoost);
+        componentBoost = Math.min(BoostDB.MAX_BOOST, componentBoost);
+        packageBoost = Math.max(BoostDB.IDLE_BOOST, packageBoost);
+        packageBoost = Math.min(BoostDB.MAX_BOOST, packageBoost);
 
         // Save the boost for the current activity first.
         // Also keep track of applied boost for other unvisited activities.
         // This will be overwritten after the first launch of those activities.
         prefs(context).edit()
-                .putFloat(PREFIX + component.flattenToShortString(), boost)
-                .putFloat(PREFIX + component.getPackageName(), boost)
+                .putFloat(PREFIX + component.flattenToShortString(), componentBoost)
+                .putFloat(PREFIX + component.getPackageName(), packageBoost)
                 .apply();
-
-        return boost;
     }
 }
