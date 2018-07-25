@@ -150,9 +150,9 @@ public class Algorithm {
 
     private static double parseJankFactor(Measurement measurement) {
         double factor = measurement.total / measurement.janky;
-        factor += (measurement.perc90 - 16);
-        factor += (measurement.perc95 - 16) * 0.5f;
-        factor += (measurement.perc99 - 32) * 0.25f;
+        factor += (measurement.perc90 - 16) * 0.1f;
+        factor += (measurement.perc95 - 16) * 0.05f;
+        factor += (measurement.perc99 - 32) * 0.025f;
         return factor;
     }
 }
