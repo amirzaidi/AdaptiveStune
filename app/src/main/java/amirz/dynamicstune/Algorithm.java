@@ -38,8 +38,8 @@ public class Algorithm {
     private static final int MIN_DATA_POINTS_LINE = 3;
 
     // ToDo: Make these constants tunable with a settings activity.
-    private static final double DURATION_COEFFICIENT = 0.15;
-    private static final double DURATION_POW = 0.4;
+    private static final double DURATION_COEFFICIENT = 0.1;
+    private static final double DURATION_POW = 0.5;
 
     /**
      * Subclass that acts as a data wrapper for a measurement or an aggregate of measurements.
