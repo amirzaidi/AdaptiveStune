@@ -111,13 +111,12 @@ public class MeasureDB {
                 new String[] { componentName.flattenToString() }, ids);
 
         if (results.size() >= COMPONENT_MAX_RESULTS) {
-            for (int i = COMPONENT_RESULT_TARGET; i < ids.size(); i++) {
+            int clearCount = ids.size() - COMPONENT_RESULT_TARGET;
+            for (int i = 0; i < clearCount; i++) {
                 db.delete(Entry.TABLE_NAME, Entry._ID + " = ?",
                         new String[] { String.valueOf(ids.get(i)) });
             }
-
-            Log.e(TAG, "Cleared " + (ids.size() - COMPONENT_RESULT_TARGET) +
-                    " results for " + componentName.flattenToString());
+            Log.e(TAG, "Cleared " + clearCount + " results for " + componentName.flattenToString());
         }
 
         return results;
@@ -139,7 +138,7 @@ public class MeasureDB {
     private List<Algorithm.Measurement> select(SQLiteDatabase db, String where, String[] args, List<Long> idsOut) {
         List<Algorithm.Measurement> results = new ArrayList<>();
         try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION, where, args,
-                null, null, Entry._ID + " DESC"
+                null, null, Entry._ID + " ASC"
         )) {
             while (cursor.moveToNext()) {
                 Pair<Long, Algorithm.Measurement> pair = readMeasurement(cursor);
