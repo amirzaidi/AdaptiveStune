@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="default_input_boost_enabled">true</bool>
+    <integer name="default_input_boost_ms">1500</integer>
+    <integer name="default_input_boost_freq_little">1000000</integer>
+    <integer name="default_input_boost_freq_big">1000000</integer>
+
+    <integer name="default_idle_boost">5</integer>
+    <integer name="default_default_boost">20</integer>
+    <integer name="default_max_boost">50</integer>
+
+    <integer name="default_target_frame_time_ms">16</integer>
+</resources>

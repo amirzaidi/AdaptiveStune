@@ -1,3 +1,26 @@
 <resources>
     <string name="app_name">Dynamic Stune</string>
+    <string name="activity_name">Stune</string>
+
+    <string name="category_global">Global</string>
+    <string name="pref_input_boost_ms">pref_input_boost_ms</string>
+    <string name="pref_input_boost_ms_title">Input boost duration</string>
+    <string name="pref_input_boost_enabled">pref_input_boost_enabled</string>
+    <string name="pref_input_boost_enabled_title">Enable input boost</string>
+    <string name="pref_input_boost_freq_little">input_boost_freq_little</string>
+    <string name="pref_input_boost_freq_little_title">Little cluster boost frequency</string>
+    <string name="pref_input_boost_freq_big">input_boost_freq_big</string>
+    <string name="pref_input_boost_freq_big_title">Big cluster boost frequency</string>
+
+    <string name="category_constants">Constants</string>
+    <string name="pref_idle_boost">pref_idle_boost</string>
+    <string name="pref_idle_boost_title">Idle boost</string>
+    <string name="pref_default_boost">pref_default_boost</string>
+    <string name="pref_default_boost_title">Default boost</string>
+    <string name="pref_max_boost">pref_max_boost</string>
+    <string name="pref_max_boost_title">Maximal boost</string>
+
+    <string name="category_algorithm">Algorithm</string>
+    <string name="pref_target_frame_time_ms">pref_target_frame_time_ms</string>
+    <string name="pref_target_frame_time_ms_title">Frame time ms target</string>
 </resources>

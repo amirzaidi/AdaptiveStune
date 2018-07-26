@@ -18,24 +18,17 @@ public class Tweaker {
     private static final int INPUT_BOOST_FREQ_LITTLE = 1000000;
     private static final int INPUT_BOOST_FREQ_BIG = 1000000;
 
-    private final Context mContext;
-    private float mCurrentBoost = Float.NaN;
+    private static float mCurrentBoost = Float.NaN;
 
-    public Tweaker(Context context) {
-        mContext = context;
-    }
-
-    public void setDefaultParams() {
+    public static void setDefaultParams() {
         runSU("echo " + INPUT_BOOST_ENABLED + " > /sys/module/cpu_boost/parameters/input_boost_enabled",
                 "echo " + INPUT_BOOST_MS + " > /sys/module/cpu_boost/parameters/input_boost_ms",
                 "echo 0:" + INPUT_BOOST_FREQ_LITTLE + " 1:0 2:" +
                         INPUT_BOOST_FREQ_BIG + " 3:0 > /sys/module/cpu_boost/parameters/input_boost_freq",
                 "echo " + BoostDB.IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
-
-        setDynamicStuneBoost(BoostDB.getDefaultBoost(mContext));
     }
 
-    public void setDynamicStuneBoost(float boost) {
+    public static void setDynamicStuneBoost(float boost) {
         int roundedBoost = BoostDB.getBoostInt(boost);
         if (BoostDB.getBoostInt(mCurrentBoost) != roundedBoost) {
             Log.w(TAG, "Setting dynamic stune boost to " + roundedBoost + " (" + boost + ")");
@@ -47,7 +40,7 @@ public class Tweaker {
         mCurrentBoost = boost;
     }
 
-    public List<String> collectAndReset(String collectPackage, String resetPackage) {
+    public static List<String> collectAndReset(String collectPackage, String resetPackage) {
         String reset = "dumpsys gfxinfo " + resetPackage + " reset";
         // It is possible that the new package name is the same,
         // so we need to reset after getting frame time stats.
@@ -56,7 +49,7 @@ public class Tweaker {
                 : runSU("dumpsys gfxinfo " + collectPackage, reset);
     }
 
-    private List<String> runSU(String... command) {
+    private static List<String> runSU(String... command) {
         for (String str : command) {
             Log.d(TAG, "SU: " + str);
         }

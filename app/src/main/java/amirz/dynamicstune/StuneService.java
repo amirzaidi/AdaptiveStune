@@ -18,7 +18,6 @@ public class StuneService extends AccessibilityService {
 
     private Handler mHandler;
     private MeasureDB mDB;
-    private Tweaker mTweaker;
 
     // Save boost so we only write on change
     private ComponentName mCurrentComponent;
@@ -28,9 +27,8 @@ public class StuneService extends AccessibilityService {
     public void onServiceConnected() {
         mHandler = new Handler();
         mDB = new MeasureDB(new MeasureDB.Helper(this));
-        mTweaker = new Tweaker(this);
 
-        mTweaker.setDynamicStuneBoost(BoostDB.getDefaultBoost(this));
+        Tweaker.setDynamicStuneBoost(BoostDB.getDefaultBoost(this));
 
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
@@ -39,7 +37,8 @@ public class StuneService extends AccessibilityService {
         info.notificationTimeout = 100;
         setServiceInfo(info);
 
-        mTweaker.setDefaultParams();
+        Tweaker.setDefaultParams();
+        Tweaker.setDynamicStuneBoost(BoostDB.getDefaultBoost(this));
     }
 
     @Override
@@ -67,7 +66,7 @@ public class StuneService extends AccessibilityService {
             mCurrentTime = System.currentTimeMillis();
 
             Log.w(TAG, "Detected launch of " + mCurrentComponent.flattenToShortString());
-            mTweaker.setDynamicStuneBoost(BoostDB.getBoost(this, mCurrentComponent));
+            Tweaker.setDynamicStuneBoost(BoostDB.getBoost(this, mCurrentComponent));
 
             mHandler.post(new Runnable() {
                 @Override
@@ -91,10 +90,10 @@ public class StuneService extends AccessibilityService {
 
         // No optimization is necessary if this is the first opened activity or blacklisted.
         if (oldComponent == null) {
-            mTweaker.collectAndReset(null, resetPackage);
+            Tweaker.collectAndReset(null, resetPackage);
         } else {
             String collectPackage = oldComponent.getPackageName();
-            List<String> stats = mTweaker.collectAndReset(collectPackage, resetPackage);
+            List<String> stats = Tweaker.collectAndReset(collectPackage, resetPackage);
 
             Algorithm.Measurement info = new Algorithm.Measurement(BoostDB.getBoost(this, oldComponent));
             for (String line : stats) {

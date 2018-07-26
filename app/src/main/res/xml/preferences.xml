@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/category_global">
+
+        <SwitchPreference
+            android:key="@string/pref_input_boost_enabled"
+            android:title="@string/pref_input_boost_enabled_title"
+            android:defaultValue="@bool/default_input_boost_enabled"
+            android:persistent="true" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_input_boost_ms"
+            android:title="@string/pref_input_boost_ms_title"
+            android:defaultValue="@integer/default_input_boost_ms"
+            android:numeric="integer" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_input_boost_freq_little"
+            android:title="@string/pref_input_boost_freq_little_title"
+            android:defaultValue="@integer/default_input_boost_freq_little"
+            android:numeric="integer" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_input_boost_freq_big"
+            android:title="@string/pref_input_boost_freq_big_title"
+            android:defaultValue="@integer/default_input_boost_freq_big"
+            android:numeric="integer" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/category_constants">
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_idle_boost"
+            android:title="@string/pref_idle_boost_title"
+            android:defaultValue="@integer/default_idle_boost"
+            android:numeric="integer" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_default_boost"
+            android:title="@string/pref_default_boost_title"
+            android:defaultValue="@integer/default_default_boost"
+            android:numeric="integer" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_max_boost"
+            android:title="@string/pref_max_boost_title"
+            android:defaultValue="@integer/default_max_boost"
+            android:numeric="integer" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/category_algorithm">
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_target_frame_time_ms"
+            android:title="@string/pref_target_frame_time_ms_title"
+            android:defaultValue="@integer/default_target_frame_time_ms"
+            android:numeric="integer" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
