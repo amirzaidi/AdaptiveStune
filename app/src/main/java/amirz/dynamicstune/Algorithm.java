@@ -24,6 +24,7 @@ import static amirz.dynamicstune.math.MathUtils.between;
 public class Algorithm {
     private static final String TAG = "Algorithm";
 
+    // ToDo: Make these constants tunable with a settings activity.
     // Frame time target for all percentiles.
     private static final int TARGET_FRAME_TIME_MS = 16;
 
@@ -57,8 +58,6 @@ public class Algorithm {
     }
 
     public static double getBoost(List<Measurement> measurements) {
-        Log.d(TAG, "Frame time measurement count: " + measurements.size());
-
         // Save the min and max for further value checking.
         int minMeasuredBoost = BoostDB.MAX_BOOST;
         int maxMeasuredBoost = BoostDB.IDLE_BOOST;
