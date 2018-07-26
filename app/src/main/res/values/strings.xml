@@ -2,6 +2,9 @@
     <string name="app_name">Dynamic Stune</string>
     <string name="activity_name">Stune</string>
 
+    <string name="ms_abbreviation">ms</string>
+    <string name="hz_abbreviation">Hz</string>
+
     <string name="category_global">Global</string>
     <string name="pref_input_boost_ms">pref_input_boost_ms</string>
     <string name="pref_input_boost_ms_title">Input boost duration</string>
@@ -22,5 +25,5 @@
 
     <string name="category_algorithm">Algorithm</string>
     <string name="pref_target_frame_time_ms">pref_target_frame_time_ms</string>
-    <string name="pref_target_frame_time_ms_title">Frame time ms target</string>
+    <string name="pref_target_frame_time_ms_title">Frame time target</string>
 </resources>

@@ -1,6 +1,7 @@
 package amirz.dynamicstune.settings;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 
 public class EditTextPreference extends android.preference.EditTextPreference {
@@ -9,14 +10,11 @@ public class EditTextPreference extends android.preference.EditTextPreference {
     }
 
     @Override
-    protected void onDialogClosed(boolean positiveResult) {
-        super.onDialogClosed(positiveResult);
-
-        setSummary(getSummary());
-    }
-
-    @Override
     public CharSequence getSummary() {
-        return this.getText();
+        CharSequence summary = super.getSummary();
+        if (TextUtils.isEmpty(summary)) {
+            return getText();
+        }
+        return getText() + " " + summary;
     }
 }

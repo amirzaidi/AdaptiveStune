@@ -12,18 +12,21 @@
         <amirz.dynamicstune.settings.EditTextPreference
             android:key="@string/pref_input_boost_ms"
             android:title="@string/pref_input_boost_ms_title"
+            android:summary="@string/ms_abbreviation"
             android:defaultValue="@integer/default_input_boost_ms"
             android:numeric="integer" />
 
         <amirz.dynamicstune.settings.EditTextPreference
             android:key="@string/pref_input_boost_freq_little"
             android:title="@string/pref_input_boost_freq_little_title"
+            android:summary="@string/hz_abbreviation"
             android:defaultValue="@integer/default_input_boost_freq_little"
             android:numeric="integer" />
 
         <amirz.dynamicstune.settings.EditTextPreference
             android:key="@string/pref_input_boost_freq_big"
             android:title="@string/pref_input_boost_freq_big_title"
+            android:summary="@string/hz_abbreviation"
             android:defaultValue="@integer/default_input_boost_freq_big"
             android:numeric="integer" />
 
@@ -56,6 +59,7 @@
         <amirz.dynamicstune.settings.EditTextPreference
             android:key="@string/pref_target_frame_time_ms"
             android:title="@string/pref_target_frame_time_ms_title"
+            android:summary="@string/ms_abbreviation"
             android:defaultValue="@integer/default_target_frame_time_ms"
             android:numeric="integer" />
 
