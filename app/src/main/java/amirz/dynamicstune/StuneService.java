@@ -125,10 +125,10 @@ public class StuneService extends AccessibilityService {
 
                 mDB.insert(oldComponent, info);
 
-                float componentBoost = Algorithm.getBoost(mDB.select(oldComponent));
-                float packageBoost = Algorithm.getBoost(mDB.select(collectPackage));
+                double componentBoost = Algorithm.getBoost(mDB.select(oldComponent));
+                double packageBoost = Algorithm.getBoost(mDB.select(collectPackage));
 
-                BoostDB.setBoost(this, oldComponent, componentBoost, packageBoost);
+                BoostDB.setBoost(this, oldComponent, (float) componentBoost, (float) packageBoost);
 
                 Log.w(TAG, "Boost updated to " + componentBoost + "/" + packageBoost +
                         " for " + oldComponent.flattenToShortString());

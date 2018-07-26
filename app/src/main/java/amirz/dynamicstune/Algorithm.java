@@ -56,24 +56,25 @@ public class Algorithm {
         }
     }
 
-    public static float getBoost(List<Measurement> measurements) {
-        Log.d(TAG, "Boost measurements " + measurements.size());
+    public static double getBoost(List<Measurement> measurements) {
+        Log.d(TAG, "Frame time measurement count: " + measurements.size());
+
+        // Save the min and max for further value checking.
+        int minMeasuredBoost = BoostDB.MAX_BOOST;
+        int maxMeasuredBoost = BoostDB.IDLE_BOOST;
 
         Set<Integer> boosts = new HashSet<>();
         List<Polynomial.Point> points = new ArrayList<>();
 
-        // Save the min and max for further value checking.
-        double minMeasuredBoost = BoostDB.MAX_BOOST;
-        double maxMeasuredBoost = BoostDB.IDLE_BOOST;
-
         for (Measurement m : measurements) {
-            boosts.add(BoostDB.getBoostInt(m.boost));
+            int boost = BoostDB.getBoostInt(m.boost);
+
+            minMeasuredBoost = Math.min(minMeasuredBoost, boost);
+            maxMeasuredBoost = Math.max(maxMeasuredBoost, boost);
 
             // Transform the data set into points for the Polynomial class.
-            Polynomial.Point p = new Polynomial.Point(m.boost, getJankTargetOffset(m));
-            minMeasuredBoost = Math.min(minMeasuredBoost, p.x);
-            maxMeasuredBoost = Math.max(maxMeasuredBoost, p.x);
-            points.add(p);
+            boosts.add(boost);
+            points.add(new Polynomial.Point(boost, getJankTargetOffset(m)));
         }
 
         if (boosts.size() >= MIN_DATA_POINTS_PARABOLA) {
@@ -88,12 +89,12 @@ public class Algorithm {
             // Never extrapolate, only interpolate.
             if (intersect.length > 0 && between(intersect[0], minMeasuredBoost, maxMeasuredBoost)) {
                 Log.d(TAG, "Parabola fitting result 1: boost = " + intersect[0]);
-                return (int) Math.round(intersect[0]);
+                return intersect[0];
             }
 
             if (intersect.length == 2 && between(intersect[1], minMeasuredBoost, maxMeasuredBoost)) {
                 Log.d(TAG, "Parabola fitting result 2: boost = " + intersect[1]);
-                return (int) Math.round(intersect[1]);
+                return intersect[1];
             }
         }
 
@@ -110,7 +111,7 @@ public class Algorithm {
                 double intersect = Line.intersect(a, b, 0);
                 if (between(intersect, minMeasuredBoost, maxMeasuredBoost)) {
                     Log.d(TAG, "Line fitting result: boost = " + intersect);
-                    return (int) Math.round(intersect);
+                    return intersect;
                 }
             }
         }
@@ -119,7 +120,7 @@ public class Algorithm {
         // Adjust based on the last data point.
         Measurement lastMeasure = measurements.get(measurements.size() - 1);
         double offset = getJankTargetOffset(lastMeasure) * getDurationFactor(lastMeasure);
-        return lastMeasure.boost + (float) offset;
+        return lastMeasure.boost + offset;
     }
 
     /**
