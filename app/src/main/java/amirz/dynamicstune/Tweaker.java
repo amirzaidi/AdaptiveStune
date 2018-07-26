@@ -12,6 +12,12 @@ import amirz.dynamicstune.database.BoostDB;
 public class Tweaker {
     private static final String TAG = "Tweaker";
 
+    // ToDo: Make these constants tunable with a settings activity.
+    private static final int INPUT_BOOST_ENABLED = 1;
+    private static final int INPUT_BOOST_MS = 1500;
+    private static final int INPUT_BOOST_FREQ_LITTLE = 1000000;
+    private static final int INPUT_BOOST_FREQ_BIG = 1000000;
+
     private final Context mContext;
     private float mCurrentBoost = Float.NaN;
 
@@ -20,9 +26,10 @@ public class Tweaker {
     }
 
     public void setDefaultParams() {
-        runSU("echo 1 > /sys/module/cpu_boost/parameters/input_boost_enabled",
-                "echo 1500 > /sys/module/cpu_boost/parameters/input_boost_ms",
-                "echo 0:1000000 1:0 2:1000000 3:0 > /sys/module/cpu_boost/parameters/input_boost_freq",
+        runSU("echo " + INPUT_BOOST_ENABLED + " > /sys/module/cpu_boost/parameters/input_boost_enabled",
+                "echo " + INPUT_BOOST_MS + " > /sys/module/cpu_boost/parameters/input_boost_ms",
+                "echo 0:" + INPUT_BOOST_FREQ_LITTLE + " 1:0 2:" +
+                        INPUT_BOOST_FREQ_BIG + " 3:0 > /sys/module/cpu_boost/parameters/input_boost_freq",
                 "echo " + BoostDB.IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
 
         setDynamicStuneBoost(BoostDB.getDefaultBoost(mContext));

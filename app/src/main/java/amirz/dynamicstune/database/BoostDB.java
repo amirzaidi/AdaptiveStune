@@ -5,9 +5,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public class BoostDB {
+    // ToDo: Make these constants tunable with a settings activity.
     public static final int IDLE_BOOST = 5;
     public static final int MAX_BOOST = 50;
 
+    // ToDo: Make these constants tunable with a settings activity.
     private static final int DEFAULT_BOOST = 20;
 
     private static final String PREFIX = "boost_";
