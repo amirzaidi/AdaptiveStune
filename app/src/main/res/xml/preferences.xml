@@ -63,6 +63,62 @@
             android:defaultValue="@integer/default_target_frame_time_ms"
             android:numeric="integer" />
 
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_perc_90_target_weight"
+            android:title="@string/pref_perc_90_target_weight_title"
+            android:defaultValue="@integer/default_perc_90_target_weight"
+            android:inputType="numberDecimal" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_perc_95_target_weight"
+            android:title="@string/pref_perc_95_target_weight_title"
+            android:defaultValue="@integer/default_perc_95_target_weight"
+            android:inputType="numberDecimal" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_perc_99_target_weight"
+            android:title="@string/pref_perc_99_target_weight_title"
+            android:defaultValue="@integer/default_perc_99_target_weight"
+            android:inputType="numberDecimal" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_min_data_points_parabola"
+            android:title="@string/pref_min_data_points_parabola_title"
+            android:defaultValue="@integer/default_min_data_points_parabola"
+            android:numeric="integer" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_min_data_points_line"
+            android:title="@string/pref_min_data_points_line_title"
+            android:defaultValue="@integer/default_min_data_points_line"
+            android:numeric="integer" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_duration_coefficient"
+            android:title="@string/pref_duration_coefficient_title"
+            android:defaultValue="@integer/default_duration_coefficient"
+            android:inputType="numberDecimal" />
+
+        <amirz.dynamicstune.settings.EditTextPreference
+            android:key="@string/pref_duration_pow"
+            android:title="@string/pref_duration_pow_title"
+            android:defaultValue="@integer/default_duration_pow"
+            android:inputType="numberDecimal" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/category_reset">
+
+        <Preference
+            android:key="@string/pref_reset_database"
+            android:title="@string/pref_reset_database_title"
+            android:summary="@string/pref_reset_database_summary" />
+
+        <Preference
+            android:key="@string/pref_reset_prefs"
+            android:title="@string/pref_reset_prefs_title"
+            android:summary="@string/pref_reset_prefs_summary" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

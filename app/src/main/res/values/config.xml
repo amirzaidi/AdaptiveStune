@@ -10,4 +10,11 @@
     <integer name="default_max_boost">50</integer>
 
     <integer name="default_target_frame_time_ms">16</integer>
+    <item name="default_perc_90_target_weight" type="integer" format="float">0.150</item>
+    <item name="default_perc_95_target_weight" type="integer" format="float">0.010</item>
+    <item name="default_perc_99_target_weight" type="integer" format="float">0.005</item>
+    <integer name="default_min_data_points_parabola">5</integer>
+    <integer name="default_min_data_points_line">3</integer>
+    <item name="default_duration_coefficient" type="integer" format="float">0.1</item>
+    <item name="default_duration_pow" type="integer" format="float">0.5</item>
 </resources>
