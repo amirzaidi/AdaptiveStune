@@ -1,10 +1,11 @@
 package amirz.dynamicstune;
 
 import android.util.Log;
-import android.util.SparseArray;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import amirz.dynamicstune.database.BoostDB;
 import amirz.dynamicstune.math.Line;
@@ -43,36 +44,39 @@ public class Algorithm {
      * Subclass that acts as a data wrapper for a measurement or an aggregate of measurements.
      */
     public static class Measurement {
-        public final int boost;
+        public final float boost;
         public double total;
         public double janky;
         public double perc90;
         public double perc95;
         public double perc99;
 
-        public Measurement(int boost) {
+        public Measurement(float boost) {
             this.boost = boost;
         }
     }
 
-    public static int getBoost(List<Measurement> measurements) {
-        SparseArray<Measurement> averages = avg(measurements);
-        Log.d(TAG, "Boost measurements " + averages.size() + " (" + measurements.size() + " total)");
+    public static float getBoost(List<Measurement> measurements) {
+        Log.d(TAG, "Boost measurements " + measurements.size());
 
-        // Transform the data set into points for the Polynomial class.
-        // Save the min and max for further value checking.
+        Set<Integer> boosts = new HashSet<>();
         List<Polynomial.Point> points = new ArrayList<>();
+
+        // Save the min and max for further value checking.
         double minMeasuredBoost = BoostDB.MAX_BOOST;
         double maxMeasuredBoost = BoostDB.IDLE_BOOST;
-        for (int i = 0; i < averages.size(); i++) {
-            Polynomial.Point p = new Polynomial.Point(averages.keyAt(i),
-                    parseJankFactor(averages.valueAt(i)));
+
+        for (Measurement m : measurements) {
+            boosts.add(BoostDB.getBoostInt(m.boost));
+
+            // Transform the data set into points for the Polynomial class.
+            Polynomial.Point p = new Polynomial.Point(m.boost, getJankTargetOffset(m));
             minMeasuredBoost = Math.min(minMeasuredBoost, p.x);
             maxMeasuredBoost = Math.max(maxMeasuredBoost, p.x);
             points.add(p);
         }
 
-        if (averages.size() >= MIN_DATA_POINTS_PARABOLA) {
+        if (boosts.size() >= MIN_DATA_POINTS_PARABOLA) {
             Polynomial parabola = new Polynomial(points, 2);
             double a = parabola.getCoefficient(2);
             double b = parabola.getCoefficient(1);
@@ -93,7 +97,7 @@ public class Algorithm {
             }
         }
 
-        if (averages.size() >= MIN_DATA_POINTS_LINE) {
+        if (boosts.size() >= MIN_DATA_POINTS_LINE) {
             Polynomial line = new Polynomial(points, 1);
 
             double a = line.getCoefficient(1);
@@ -114,54 +118,8 @@ public class Algorithm {
         // Fallback implementation when not enough data has been collected.
         // Adjust based on the last data point.
         Measurement lastMeasure = measurements.get(measurements.size() - 1);
-        double offset = parseJankFactor(lastMeasure) * parseDurationFactor(lastMeasure);
-        return lastMeasure.boost + (int) Math.round(offset);
-    }
-
-    private static SparseArray<Measurement> avg(List<Measurement> measurements) {
-        // Could be optimized by shifting down with BoostDB.IDLE_BOOST.
-        int[] boostCount = new int[BoostDB.MAX_BOOST + 1];
-        for (Measurement m : measurements) {
-            boostCount[m.boost]++;
-        }
-
-        // Initialize all measurement sum objects.
-        SparseArray<Measurement> measurementSums = new SparseArray<>();
-        SparseArray<Double> totalDurationWeights = new SparseArray<>();
-        for (int i = 0; i < boostCount.length; i++) {
-            if (boostCount[i] != 0) {
-                measurementSums.put(i, new Measurement(i));
-                totalDurationWeights.put(i, 0d);
-            }
-        }
-
-        // Count sums
-        for (Measurement m : measurements) {
-            double durationWeight = parseDurationFactor(m);
-
-            Measurement sum = measurementSums.get(m.boost);
-            sum.total += m.total * durationWeight;
-            sum.janky += m.janky * durationWeight;
-            sum.perc90 += m.perc90 * durationWeight;
-            sum.perc95 += m.perc95 * durationWeight;
-            sum.perc99 += m.perc99 * durationWeight;
-
-            totalDurationWeights.put(m.boost, totalDurationWeights.get(m.boost) + durationWeight);
-        }
-
-        // Normalize to averages
-        for (int i = 0; i < measurementSums.size(); i++) {
-            double totalDurationWeight = totalDurationWeights.valueAt(i);
-
-            Measurement sum = measurementSums.valueAt(i);
-            sum.total /= totalDurationWeight;
-            sum.janky /= totalDurationWeight;
-            sum.perc90 /= totalDurationWeight;
-            sum.perc95 /= totalDurationWeight;
-            sum.perc99 /= totalDurationWeight;
-        }
-
-        return measurementSums;
+        double offset = getJankTargetOffset(lastMeasure) * getDurationFactor(lastMeasure);
+        return lastMeasure.boost + (float) offset;
     }
 
     /**
@@ -170,14 +128,14 @@ public class Algorithm {
      * @return Zero when the frame rate is equal to the target.
      * A positive value when it is too janky, a negative value when it is too smooth.
      */
-    public static double parseJankFactor(Measurement measurement) {
+    public static double getJankTargetOffset(Measurement measurement) {
         return measurement.janky / measurement.total +
                 (measurement.perc90 - TARGET_FRAME_TIME_MS) * PERC_90_TARGET_WEIGHT +
                 (measurement.perc95 - TARGET_FRAME_TIME_MS) * PERC_95_TARGET_WEIGHT +
                 (measurement.perc99 - TARGET_FRAME_TIME_MS) * PERC_99_TARGET_WEIGHT;
     }
 
-    public static double parseDurationFactor(Measurement measurement) {
+    public static double getDurationFactor(Measurement measurement) {
         return DURATION_COEFFICIENT * Math.pow(measurement.total, DURATION_POW);
     }
 }

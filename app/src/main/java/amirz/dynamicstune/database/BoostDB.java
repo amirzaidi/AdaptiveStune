@@ -17,7 +17,7 @@ public class BoostDB {
         return context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
     }
 
-    private static float getBoost(Context context, ComponentName component) {
+    public static float getBoost(Context context, ComponentName component) {
         SharedPreferences prefs = prefs(context);
 
         // Default
@@ -32,16 +32,16 @@ public class BoostDB {
         return boost;
     }
 
+    public static int getBoostInt(float boost) {
+        return Math.round(boost);
+    }
+
     // Can later be overwritten
     public static int getDefaultBoost(Context context) {
         return prefs(context).getInt(DEFAULT_BOOST_PREF, DEFAULT_BOOST);
     }
 
-    public static int getBoostInt(Context context, ComponentName component) {
-        return Math.round(getBoost(context, component));
-    }
-
-    public static void setBoost(Context context, ComponentName component, int componentBoost, int packageBoost) {
+    public static void setBoost(Context context, ComponentName component, float componentBoost, float packageBoost) {
         // Ensure within bounds
         componentBoost = Math.max(BoostDB.IDLE_BOOST, componentBoost);
         componentBoost = Math.min(BoostDB.MAX_BOOST, componentBoost);
