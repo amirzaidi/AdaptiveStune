@@ -11,9 +11,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import amirz.dynamicstune.Algorithm;
 
@@ -68,7 +66,13 @@ public class MeasureDB {
         mHelper = helper;
     }
 
-    public long insert(ComponentName componentName, Algorithm.Measurement info) {
+    /**
+     * Inserts a new measurement for the component into the database.
+     * @param componentName The component for which this measurement was taken.
+     * @param measurement The measured frame time statistics.
+     * @return The row ID if insertion went successfully, or -1 if an error occurred.
+     */
+    public long insert(ComponentName componentName, Algorithm.Measurement measurement) {
         if (mClosed) {
             return -1;
         }
@@ -78,48 +82,79 @@ public class MeasureDB {
         ContentValues values = new ContentValues();
         values.put(Entry.COL_PACKAGE, componentName.getPackageName());
         values.put(Entry.COL_COMPONENT, componentName.flattenToString());
-        values.put(Entry.COL_BOOST, info.boost);
-        values.put(Entry.COL_FRAMES, info.total);
-        values.put(Entry.COL_JANKS, info.janky);
-        values.put(Entry.COL_PERC_90, info.perc90);
-        values.put(Entry.COL_PERC_95, info.perc95);
-        values.put(Entry.COL_PERC_99, info.perc99);
+        values.put(Entry.COL_BOOST, measurement.boost);
+        values.put(Entry.COL_FRAMES, measurement.total);
+        values.put(Entry.COL_JANKS, measurement.janky);
+        values.put(Entry.COL_PERC_90, measurement.perc90);
+        values.put(Entry.COL_PERC_95, measurement.perc95);
+        values.put(Entry.COL_PERC_99, measurement.perc99);
 
         return db.insert(Entry.TABLE_NAME, null, values);
     }
 
+    /**
+     * Retrieves all measurements for the specified component.
+     * Automatically removes old results when the MAX_RESULTS cap has been reached.
+     * @param componentName The component for which measurements are queried.
+     * @return A list of all its measurements, including potentially removed ones,
+     * or null if the connection was closed.
+     */
     public List<Algorithm.Measurement> select(ComponentName componentName) {
-        List<Algorithm.Measurement> results = select(Entry.COL_COMPONENT + " = ?",
-                new String[] { componentName.flattenToString() });
+        if (mClosed) {
+            return null;
+        }
+
+        SQLiteDatabase db = mHelper.getWritableDatabase();
+
+        List<Long> ids = new ArrayList<>();
+        List<Algorithm.Measurement> results = select(db, Entry.COL_COMPONENT + " = ?",
+                new String[] { componentName.flattenToString() }, ids);
 
         if (results.size() >= COMPONENT_MAX_RESULTS) {
-            deleteObsoleteResults(componentName);
+            for (int i = COMPONENT_RESULT_TARGET; i < ids.size(); i++) {
+                db.delete(Entry.TABLE_NAME, Entry._ID + " = ?",
+                        new String[] { String.valueOf(ids.get(i)) });
+            }
+
+            Log.e(TAG, "Cleared " + (ids.size() - COMPONENT_RESULT_TARGET) +
+                    " results for " + componentName.flattenToString());
         }
 
         return results;
     }
 
+    /**
+     * Retrieves all measurements for the specified package.
+     * @return A list of all the measurements of the package, or null if the connection was closed.
+     */
     public List<Algorithm.Measurement> select(String packageName) {
-        return select(Entry.COL_PACKAGE + " = ?",
-                new String[] { packageName });
+        if (mClosed) {
+            return null;
+        }
+
+        return select(mHelper.getWritableDatabase(), Entry.COL_PACKAGE + " = ?",
+                new String[] { packageName }, null);
     }
 
-    private List<Algorithm.Measurement> select(String where, String[] args) {
+    private List<Algorithm.Measurement> select(SQLiteDatabase db, String where, String[] args, List<Long> idsOut) {
         List<Algorithm.Measurement> results = new ArrayList<>();
-        if (!mClosed) {
-            SQLiteDatabase db = mHelper.getReadableDatabase();
-
-            try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION, where, args,
-                    null, null, null
-            )) {
-                while (cursor.moveToNext()) {
-                    results.add(readMeasurement(cursor).second);
+        try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION, where, args,
+                null, null, Entry._ID + " DESC"
+        )) {
+            while (cursor.moveToNext()) {
+                Pair<Long, Algorithm.Measurement> pair = readMeasurement(cursor);
+                if (idsOut != null) {
+                    idsOut.add(pair.first);
                 }
+                results.add(pair.second);
             }
         }
         return results;
     }
 
+    /**
+     * Closes the connection to the database and prevents any new operations from being executed.
+     */
     public void close() {
         mClosed = true;
         mHelper.close();
@@ -134,34 +169,6 @@ public class MeasureDB {
         measurement.perc95 = cursor.getInt(cursor.getColumnIndexOrThrow(Entry.COL_PERC_95));
         measurement.perc99 = cursor.getInt(cursor.getColumnIndexOrThrow(Entry.COL_PERC_99));
         return new Pair<>(cursor.getLong(cursor.getColumnIndexOrThrow(Entry._ID)), measurement);
-    }
-
-    private void deleteObsoleteResults(ComponentName componentName) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
-
-        Set<Long> removeIds = new HashSet<>();
-
-        int i = 0;
-        try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION,
-                Entry.COL_COMPONENT + " = ?", new String[] { componentName.flattenToString() },
-                null, null, Entry._ID + " DESC"
-        )) {
-            while (cursor.moveToNext()) {
-                if (i++ >= COMPONENT_RESULT_TARGET) {
-                    removeIds.add(readMeasurement(cursor).first);
-                }
-            }
-        }
-
-        for (long removeId : removeIds) {
-            db.delete(Entry.TABLE_NAME, Entry._ID + " = ?",
-                    new String[] { String.valueOf(removeId) });
-        }
-
-        if (removeIds.size() > 0) {
-            Log.e(TAG, "Cleared " + removeIds.size() +
-                    " results for " + componentName.flattenToString());
-        }
     }
 
     public static class Helper extends SQLiteOpenHelper {
