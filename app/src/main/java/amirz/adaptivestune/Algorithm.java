@@ -106,16 +106,18 @@ public class Algorithm {
             double[] intersect = Parabola.root(a, b, c);
 
             Log.w(TAG, "Parabola fitting: " + a + " " + b + " " + c);
-
-            // Never extrapolate, only interpolate.
-            if (intersect.length > 0 && between(intersect[0], minMeasuredBoost, maxMeasuredBoost)) {
-                Log.d(TAG, "Parabola fitting result 1: boost = " + intersect[0]);
-                return intersect[0];
-            }
-
-            if (intersect.length == 2 && between(intersect[1], minMeasuredBoost, maxMeasuredBoost)) {
-                Log.d(TAG, "Parabola fitting result 2: boost = " + intersect[1]);
-                return intersect[1];
+            if (intersect.length == 2) {
+                // Never extrapolate, only interpolate.
+                boolean firstBetween = between(intersect[0], minMeasuredBoost, maxMeasuredBoost);
+                boolean secondBetween = between(intersect[1], minMeasuredBoost, maxMeasuredBoost);
+                if (firstBetween && !secondBetween) {
+                    Log.d(TAG, "Parabola fitting result 1: boost = " + intersect[0]);
+                    return intersect[0];
+                }
+                if (!firstBetween && secondBetween) {
+                    Log.d(TAG, "Parabola fitting result 2: boost = " + intersect[1]);
+                    return intersect[1];
+                }
             }
         }
 
@@ -127,8 +129,9 @@ public class Algorithm {
 
             Log.d(TAG, "Line fitting: " + a + " " + b);
 
-            // Line data does not make sense if this is not positive.
-            if (a > 0) {
+            // Line data does not make sense if this is not negative, because there should be a
+            // downwards trend for jank calculations at higher boosts.
+            if (a < 0) {
                 double intersect = Line.root(a, b);
                 if (between(intersect, minMeasuredBoost, maxMeasuredBoost)) {
                     Log.d(TAG, "Line fitting result: boost = " + intersect);
