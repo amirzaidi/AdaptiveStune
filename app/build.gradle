@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "amirz.dynamicstune"
+        applicationId "amirz.adaptivestune"
         minSdkVersion 25
         targetSdkVersion 27
         versionCode 1

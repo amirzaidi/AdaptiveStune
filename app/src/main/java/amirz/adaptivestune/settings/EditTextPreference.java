@@ -1,4 +1,4 @@
-package amirz.dynamicstune.settings;
+package amirz.adaptivestune.settings;
 
 import android.content.Context;
 import android.text.TextUtils;

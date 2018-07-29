@@ -1,4 +1,4 @@
-package amirz.dynamicstune.math;
+package amirz.adaptivestune.math;
 
 import java.util.List;
 

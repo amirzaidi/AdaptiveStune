@@ -1,4 +1,4 @@
-package amirz.dynamicstune.database;
+package amirz.adaptivestune.database;
 
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -13,10 +13,10 @@ import android.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-import amirz.dynamicstune.Algorithm;
+import amirz.adaptivestune.Algorithm;
 
-public class MeasureDB {
-    private static final String TAG = "MeasureDB";
+public class Measure {
+    private static final String TAG = "Measure";
 
     private static class Entry implements BaseColumns {
         private static final String TABLE_NAME = "measurement";
@@ -62,7 +62,7 @@ public class MeasureDB {
     private final Helper mHelper;
     private boolean mClosed;
 
-    public MeasureDB(Helper helper) {
+    public Measure(Helper helper) {
         mHelper = helper;
     }
 
@@ -122,19 +122,6 @@ public class MeasureDB {
         return results;
     }
 
-    /**
-     * Retrieves all measurements for the specified package.
-     * @return A list of all the measurements of the package, or null if the connection was closed.
-     */
-    public List<Algorithm.Measurement> select(String packageName) {
-        if (mClosed) {
-            return null;
-        }
-
-        return select(mHelper.getWritableDatabase(), Entry.COL_PACKAGE + " = ?",
-                new String[] { packageName }, null);
-    }
-
     private List<Algorithm.Measurement> select(SQLiteDatabase db, String where, String[] args, List<Long> idsOut) {
         List<Algorithm.Measurement> results = new ArrayList<>();
         try (Cursor cursor = db.query(Entry.TABLE_NAME, RESULT_PROJECTION, where, args,
@@ -180,13 +167,17 @@ public class MeasureDB {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL(CREATE);
+            recreate(db);
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            recreate(db);
+        }
+
+        public void recreate(SQLiteDatabase db) {
             db.execSQL(DROP);
-            onCreate(db);
+            db.execSQL(CREATE);
         }
     }
 }

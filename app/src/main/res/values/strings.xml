@@ -6,46 +6,35 @@
     <string name="hz_abbreviation">Hz</string>
 
     <string name="category_global">Global</string>
-    <string name="pref_input_boost_ms">pref_input_boost_ms</string>
     <string name="pref_input_boost_ms_title">Input boost duration</string>
-    <string name="pref_input_boost_enabled">pref_input_boost_enabled</string>
     <string name="pref_input_boost_enabled_title">Enable input boost</string>
-    <string name="pref_input_boost_freq_little">input_boost_freq_little</string>
     <string name="pref_input_boost_freq_little_title">Little cluster boost frequency</string>
-    <string name="pref_input_boost_freq_big">input_boost_freq_big</string>
     <string name="pref_input_boost_freq_big_title">Big cluster boost frequency</string>
 
     <string name="category_constants">Constants</string>
-    <string name="pref_idle_boost">pref_idle_boost</string>
     <string name="pref_idle_boost_title">Idle boost</string>
-    <string name="pref_default_boost">pref_default_boost</string>
     <string name="pref_default_boost_title">Default boost</string>
-    <string name="pref_max_boost">pref_max_boost</string>
     <string name="pref_max_boost_title">Maximal boost</string>
 
     <string name="category_algorithm">Algorithm</string>
-    <string name="pref_target_frame_time_ms">pref_target_frame_time_ms</string>
     <string name="pref_target_frame_time_ms_title">Frame time target</string>
-    <string name="pref_perc_90_target_weight">pref_perc_90_target_weight</string>
     <string name="pref_perc_90_target_weight_title">90th percentile weight</string>
-    <string name="pref_perc_95_target_weight">pref_perc_95_target_weight</string>
     <string name="pref_perc_95_target_weight_title">95th percentile weight</string>
-    <string name="pref_perc_99_target_weight">pref_perc_99_target_weight</string>
     <string name="pref_perc_99_target_weight_title">99th percentile weight</string>
-    <string name="pref_min_data_points_parabola">pref_min_data_points_parabola</string>
     <string name="pref_min_data_points_parabola_title">Parabola lower data limit</string>
-    <string name="pref_min_data_points_line">pref_min_data_points_line</string>
     <string name="pref_min_data_points_line_title">Line lower data limit</string>
-    <string name="pref_duration_coefficient">pref_duration_coefficient</string>
     <string name="pref_duration_coefficient_title">Duration coefficient</string>
-    <string name="pref_duration_pow">pref_duration_pow</string>
     <string name="pref_duration_pow_title">Duration power</string>
 
     <string name="category_reset">Reset</string>
-    <string name="pref_reset_database">pref_reset_database</string>
     <string name="pref_reset_database_title">Clear database</string>
     <string name="pref_reset_database_summary">Deletes all previously collected data</string>
-    <string name="pref_reset_prefs">pref_reset_prefs</string>
     <string name="pref_reset_prefs_title">Revert settings</string>
     <string name="pref_reset_prefs_summary">Restores the default settings</string>
+
+    <string name="on_reset_database">Database has been cleared</string>
+    <string name="on_reset_pref">Preferences have been restored to the default values</string>
+    <string name="go_there">Go there</string>
+    <string name="title_missing_service">Missing Service</string>
+    <string name="desc_missing_service">Currently, the accessibility service is not running. Do you want to go to the settings app to enable it?</string>
 </resources>

@@ -1,10 +1,7 @@
-package amirz.dynamicstune.math;
+package amirz.adaptivestune.math;
 
 public class Parabola {
-    public static double[] intersect(double a, double b, double c, double y) {
-        // Calculate intersection with line by shifting up/down.
-        c -= y;
-
+    public static double[] root(double a, double b, double c) {
         double D = b * b - 4 * a * c;
 
         // Two solutions.
@@ -23,5 +20,10 @@ public class Parabola {
 
         // No solutions.
         return new double[0];
+    }
+
+    public static double[] intersect(double a, double b, double c, double y) {
+        // Calculate intersection with line by shifting up/down and then taking the roots.
+        return root(a, b, c - y);
     }
 }

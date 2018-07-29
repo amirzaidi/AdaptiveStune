@@ -1,23 +1,29 @@
-package amirz.dynamicstune;
+package amirz.adaptivestune;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 
 import java.util.List;
 
-import amirz.dynamicstune.database.BoostDB;
-import amirz.dynamicstune.database.MeasureDB;
+import amirz.adaptivestune.database.Boost;
+import amirz.adaptivestune.database.Measure;
 
-public class StuneService extends AccessibilityService {
+import static amirz.adaptivestune.database.Settings.prefs;
+
+public class StuneService extends AccessibilityService
+        implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "StuneService";
 
+    public static boolean sIsRunning = false;
+
     private Handler mHandler;
-    private MeasureDB mDB;
+    private Measure mDB;
 
     // Save boost so we only write on change
     private ComponentName mCurrentComponent;
@@ -26,9 +32,7 @@ public class StuneService extends AccessibilityService {
     @Override
     public void onServiceConnected() {
         mHandler = new Handler();
-        mDB = new MeasureDB(new MeasureDB.Helper(this));
-
-        Tweaker.setDynamicStuneBoost(BoostDB.getDefaultBoost(this));
+        mDB = new Measure(new Measure.Helper(this));
 
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
@@ -37,13 +41,28 @@ public class StuneService extends AccessibilityService {
         info.notificationTimeout = 100;
         setServiceInfo(info);
 
-        Tweaker.setDefaultParams();
-        Tweaker.setDynamicStuneBoost(BoostDB.getDefaultBoost(this));
+        Tunable.applyAll(prefs(this), getResources());
+        Tweaker.applyDefaultParams();
+        prefs(this).registerOnSharedPreferenceChangeListener(this);
+
+        sIsRunning = true;
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        // Only restore default values if any of the tunables changed.
+        if (Tunable.apply(prefs, getResources(), key)) {
+            Tweaker.applyDefaultParams();
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        sIsRunning = false;
+
+        prefs(this).unregisterOnSharedPreferenceChangeListener(this);
+
         mDB.close();
     }
 
@@ -66,7 +85,7 @@ public class StuneService extends AccessibilityService {
             mCurrentTime = System.currentTimeMillis();
 
             Log.w(TAG, "Detected launch of " + mCurrentComponent.flattenToShortString());
-            Tweaker.setDynamicStuneBoost(BoostDB.getBoost(this, mCurrentComponent));
+            Tweaker.setDynamicStuneBoost(Boost.getBoostInt(this, mCurrentComponent));
 
             mHandler.post(new Runnable() {
                 @Override
@@ -95,7 +114,7 @@ public class StuneService extends AccessibilityService {
             String collectPackage = oldComponent.getPackageName();
             List<String> stats = Tweaker.collectAndReset(collectPackage, resetPackage);
 
-            Algorithm.Measurement info = new Algorithm.Measurement(BoostDB.getBoost(this, oldComponent));
+            Algorithm.Measurement info = new Algorithm.Measurement(Boost.getBoost(this, oldComponent));
             for (String line : stats) {
                 if (line.contains("Number Missed Vsync")) {
                     break;
@@ -117,20 +136,16 @@ public class StuneService extends AccessibilityService {
 
             // Do not print logs when there was not even a single frame captured.
             if (info.total > 0) {
+                mDB.insert(oldComponent, info);
                 Log.w(TAG, "Rendered " + info.total + " (" + Algorithm.getJankTargetOffset(info) +
                         ", " + Algorithm.getDurationFactor(info) + ") with " + info.janky +
                         " perc (" + info.perc90 + "ms, " + info.perc95 + "ms, " + info.perc99 +
                         "ms) for " +  oldComponent.flattenToShortString());
 
-                mDB.insert(oldComponent, info);
-
                 double componentBoost = Algorithm.getBoost(mDB.select(oldComponent));
-                double packageBoost = Algorithm.getBoost(mDB.select(collectPackage));
-
-                BoostDB.setBoost(this, oldComponent, (float) componentBoost, (float) packageBoost);
-
-                Log.w(TAG, "Boost updated to " + componentBoost + "/" + packageBoost +
-                        " for " + oldComponent.flattenToShortString());
+                Boost.setBoost(this, oldComponent, (float) componentBoost);
+                Log.w(TAG, "Boost updated to " + componentBoost + " for " +
+                        oldComponent.flattenToShortString());
             }
         }
     }

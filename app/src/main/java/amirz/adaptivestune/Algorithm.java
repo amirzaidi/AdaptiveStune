@@ -1,4 +1,4 @@
-package amirz.dynamicstune;
+package amirz.adaptivestune;
 
 import android.util.Log;
 
@@ -7,12 +7,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import amirz.dynamicstune.database.BoostDB;
-import amirz.dynamicstune.math.Line;
-import amirz.dynamicstune.math.Parabola;
-import amirz.dynamicstune.math.Polynomial;
+import amirz.adaptivestune.database.Boost;
+import amirz.adaptivestune.math.Line;
+import amirz.adaptivestune.math.Parabola;
+import amirz.adaptivestune.math.Polynomial;
 
-import static amirz.dynamicstune.math.MathUtils.between;
+import static amirz.adaptivestune.math.MathUtils.between;
 
 /**
  * This class takes measurements into account and returns a new boost value to try.
@@ -24,22 +24,44 @@ import static amirz.dynamicstune.math.MathUtils.between;
 public class Algorithm {
     private static final String TAG = "Algorithm";
 
-    // ToDo: Make these constants tunable with a settings activity.
     // Frame time target for all percentiles.
-    private static final int TARGET_FRAME_TIME_MS = 16;
+    private static final Tunable.IntegerRef TARGET_FRAME_TIME_MS =
+            new Tunable.IntegerRef(R.string.pref_target_frame_time_ms,
+                    R.integer.default_target_frame_time_ms);
 
-    // ToDo: Make these constants tunable with a settings activity.
-    private static final double PERC_90_TARGET_WEIGHT = 0.150f;
-    private static final double PERC_95_TARGET_WEIGHT = 0.010f;
-    private static final double PERC_99_TARGET_WEIGHT = 0.005f;
+    // Influence on the jank factor is stronger when these are higher.
+    private static final Tunable.FloatRef PERC_90_TARGET_WEIGHT =
+            new Tunable.FloatRef(R.string.pref_perc_90_target_weight,
+                    R.integer.default_perc_90_target_weight);
 
-    // ToDo: Make these constants tunable with a settings activity.
-    private static final int MIN_DATA_POINTS_PARABOLA = 5;
-    private static final int MIN_DATA_POINTS_LINE = 3;
+    private static final Tunable.FloatRef PERC_95_TARGET_WEIGHT =
+            new Tunable.FloatRef(R.string.pref_perc_95_target_weight,
+                    R.integer.default_perc_95_target_weight);
 
-    // ToDo: Make these constants tunable with a settings activity.
-    private static final double DURATION_COEFFICIENT = 0.1;
-    private static final double DURATION_POW = 0.5;
+    private static final Tunable.FloatRef PERC_99_TARGET_WEIGHT =
+            new Tunable.FloatRef(R.string.pref_perc_99_target_weight,
+                    R.integer.default_perc_99_target_weight);
+
+    // When this many different data points exist, use the parabola fitting algorithm.
+    private static final Tunable.IntegerRef MIN_DATA_POINTS_PARABOLA =
+            new Tunable.IntegerRef(R.string.pref_min_data_points_parabola,
+                    R.integer.default_min_data_points_parabola);
+
+    // When this many different data points exist, use the line fitting algorithm.
+    private static final Tunable.IntegerRef MIN_DATA_POINTS_LINE =
+            new Tunable.IntegerRef(R.string.pref_min_data_points_line,
+                    R.integer.default_min_data_points_line);
+
+    // Used to determine how important the latest result is for fallback algorithm.
+    private static final Tunable.FloatRef DURATION_COEFFICIENT =
+            new Tunable.FloatRef(R.string.pref_duration_coefficient,
+                    R.integer.default_duration_coefficient);
+
+    private static final Tunable.FloatRef DURATION_POW =
+            new Tunable.FloatRef(R.string.pref_duration_pow,
+                    R.integer.default_duration_pow);
+
+    public static void init() {}
 
     /**
      * Subclass that acts as a data wrapper for a measurement or an aggregate of measurements.
@@ -59,14 +81,14 @@ public class Algorithm {
 
     public static double getBoost(List<Measurement> measurements) {
         // Save the min and max for further value checking.
-        int minMeasuredBoost = BoostDB.MAX_BOOST;
-        int maxMeasuredBoost = BoostDB.IDLE_BOOST;
+        int minMeasuredBoost = Boost.MAX_BOOST.get();
+        int maxMeasuredBoost = Boost.IDLE_BOOST.get();
 
         Set<Integer> boosts = new HashSet<>();
         List<Polynomial.Point> points = new ArrayList<>();
 
         for (Measurement m : measurements) {
-            int boost = BoostDB.getBoostInt(m.boost);
+            int boost = Boost.round(m.boost);
 
             minMeasuredBoost = Math.min(minMeasuredBoost, boost);
             maxMeasuredBoost = Math.max(maxMeasuredBoost, boost);
@@ -76,12 +98,12 @@ public class Algorithm {
             points.add(new Polynomial.Point(boost, getJankTargetOffset(m)));
         }
 
-        if (boosts.size() >= MIN_DATA_POINTS_PARABOLA) {
+        if (boosts.size() >= MIN_DATA_POINTS_PARABOLA.get()) {
             Polynomial parabola = new Polynomial(points, 2);
             double a = parabola.getCoefficient(2);
             double b = parabola.getCoefficient(1);
             double c = parabola.getCoefficient(0);
-            double[] intersect = Parabola.intersect(a, b, c, 0);
+            double[] intersect = Parabola.root(a, b, c);
 
             Log.w(TAG, "Parabola fitting: " + a + " " + b + " " + c);
 
@@ -97,7 +119,7 @@ public class Algorithm {
             }
         }
 
-        if (boosts.size() >= MIN_DATA_POINTS_LINE) {
+        if (boosts.size() >= MIN_DATA_POINTS_LINE.get()) {
             Polynomial line = new Polynomial(points, 1);
 
             double a = line.getCoefficient(1);
@@ -107,7 +129,7 @@ public class Algorithm {
 
             // Line data does not make sense if this is not positive.
             if (a > 0) {
-                double intersect = Line.intersect(a, b, 0);
+                double intersect = Line.root(a, b);
                 if (between(intersect, minMeasuredBoost, maxMeasuredBoost)) {
                     Log.d(TAG, "Line fitting result: boost = " + intersect);
                     return intersect;
@@ -129,13 +151,14 @@ public class Algorithm {
      * A positive value when it is too janky, a negative value when it is too smooth.
      */
     public static double getJankTargetOffset(Measurement measurement) {
+        int targetFrameTime = TARGET_FRAME_TIME_MS.get();
         return measurement.janky / measurement.total +
-                (measurement.perc90 - TARGET_FRAME_TIME_MS) * PERC_90_TARGET_WEIGHT +
-                (measurement.perc95 - TARGET_FRAME_TIME_MS) * PERC_95_TARGET_WEIGHT +
-                (measurement.perc99 - TARGET_FRAME_TIME_MS) * PERC_99_TARGET_WEIGHT;
+                (measurement.perc90 - targetFrameTime) * PERC_90_TARGET_WEIGHT.get() +
+                (measurement.perc95 - targetFrameTime) * PERC_95_TARGET_WEIGHT.get() +
+                (measurement.perc99 - targetFrameTime) * PERC_99_TARGET_WEIGHT.get();
     }
 
     public static double getDurationFactor(Measurement measurement) {
-        return DURATION_COEFFICIENT * Math.pow(measurement.total, DURATION_POW);
+        return DURATION_COEFFICIENT.get() * Math.pow(measurement.total, DURATION_POW.get());
     }
 }

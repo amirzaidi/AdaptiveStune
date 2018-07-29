@@ -1,4 +1,4 @@
-package amirz.dynamicstune;
+package amirz.adaptivestune;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

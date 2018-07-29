@@ -1,4 +1,4 @@
-package amirz.dynamicstune;
+package amirz.adaptivestune;
 
 import org.junit.Test;
 

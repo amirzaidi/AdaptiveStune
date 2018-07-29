@@ -9,21 +9,21 @@
             android:defaultValue="@bool/default_input_boost_enabled"
             android:persistent="true" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_input_boost_ms"
             android:title="@string/pref_input_boost_ms_title"
             android:summary="@string/ms_abbreviation"
             android:defaultValue="@integer/default_input_boost_ms"
             android:numeric="integer" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_input_boost_freq_little"
             android:title="@string/pref_input_boost_freq_little_title"
             android:summary="@string/hz_abbreviation"
             android:defaultValue="@integer/default_input_boost_freq_little"
             android:numeric="integer" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_input_boost_freq_big"
             android:title="@string/pref_input_boost_freq_big_title"
             android:summary="@string/hz_abbreviation"
@@ -34,19 +34,19 @@
 
     <PreferenceCategory android:title="@string/category_constants">
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_idle_boost"
             android:title="@string/pref_idle_boost_title"
             android:defaultValue="@integer/default_idle_boost"
             android:numeric="integer" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_default_boost"
             android:title="@string/pref_default_boost_title"
             android:defaultValue="@integer/default_default_boost"
             android:numeric="integer" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_max_boost"
             android:title="@string/pref_max_boost_title"
             android:defaultValue="@integer/default_max_boost"
@@ -56,50 +56,50 @@
 
     <PreferenceCategory android:title="@string/category_algorithm">
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_target_frame_time_ms"
             android:title="@string/pref_target_frame_time_ms_title"
             android:summary="@string/ms_abbreviation"
             android:defaultValue="@integer/default_target_frame_time_ms"
             android:numeric="integer" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_perc_90_target_weight"
             android:title="@string/pref_perc_90_target_weight_title"
             android:defaultValue="@integer/default_perc_90_target_weight"
             android:inputType="numberDecimal" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_perc_95_target_weight"
             android:title="@string/pref_perc_95_target_weight_title"
             android:defaultValue="@integer/default_perc_95_target_weight"
             android:inputType="numberDecimal" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_perc_99_target_weight"
             android:title="@string/pref_perc_99_target_weight_title"
             android:defaultValue="@integer/default_perc_99_target_weight"
             android:inputType="numberDecimal" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_min_data_points_parabola"
             android:title="@string/pref_min_data_points_parabola_title"
             android:defaultValue="@integer/default_min_data_points_parabola"
             android:numeric="integer" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_min_data_points_line"
             android:title="@string/pref_min_data_points_line_title"
             android:defaultValue="@integer/default_min_data_points_line"
             android:numeric="integer" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_duration_coefficient"
             android:title="@string/pref_duration_coefficient_title"
             android:defaultValue="@integer/default_duration_coefficient"
             android:inputType="numberDecimal" />
 
-        <amirz.dynamicstune.settings.EditTextPreference
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_duration_pow"
             android:title="@string/pref_duration_pow_title"
             android:defaultValue="@integer/default_duration_pow"

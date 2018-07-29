@@ -1,4 +1,4 @@
-package amirz.dynamicstune.math;
+package amirz.adaptivestune.math;
 
 public class MathUtils {
     public static boolean between(double value, double min, double max) {
