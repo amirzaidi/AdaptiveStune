@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.SwitchPreference;
 import android.provider.Settings;
 import android.widget.Toast;
 
@@ -65,7 +66,8 @@ public class SettingsActivity extends Activity {
         startActivity(getIntent());
     }
 
-    public static class SettingsFragment extends PreferenceFragment {
+    public static class SettingsFragment extends PreferenceFragment
+            implements Preference.OnPreferenceChangeListener {
         private Activity mContext;
 
         @Override
@@ -76,11 +78,25 @@ public class SettingsActivity extends Activity {
             getPreferenceManager().setSharedPreferencesName(mContext.getPackageName());
             addPreferencesFromResource(R.xml.preferences);
 
+            SwitchPreference inputBoostPref = (SwitchPreference) findPreference(
+                    getString(R.string.pref_input_boost_enabled));
+            onPreferenceChange(inputBoostPref, inputBoostPref.isChecked());
+            inputBoostPref.setOnPreferenceChangeListener(this);
+
             findPreference(getString(R.string.pref_reset_database))
                     .setOnPreferenceClickListener(new OnResetDatabase());
 
             findPreference(getString(R.string.pref_reset_prefs))
                     .setOnPreferenceClickListener(new OnResetPreferences());
+        }
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            boolean enabled = (boolean) newValue;
+            findPreference(getString(R.string.pref_input_boost_ms)).setEnabled(enabled);
+            findPreference(getString(R.string.pref_input_boost_freq_little)).setEnabled(enabled);
+            findPreference(getString(R.string.pref_input_boost_freq_big)).setEnabled(enabled);
+            return true;
         }
 
         public class OnResetDatabase implements Preference.OnPreferenceClickListener {
