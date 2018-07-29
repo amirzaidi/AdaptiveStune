@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Dynamic Stune</string>
+    <string name="app_name">Adaptive Stune Service</string>
     <string name="activity_name">Stune</string>
 
     <string name="ms_abbreviation">ms</string>
