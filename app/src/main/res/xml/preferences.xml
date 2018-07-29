@@ -107,6 +107,22 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/category_measurement_decay">
+
+        <amirz.adaptivestune.settings.EditTextPreference
+            android:key="@string/pref_measurement_decay_trigger"
+            android:title="@string/pref_measurement_decay_trigger_title"
+            android:defaultValue="@integer/default_measurement_decay_trigger"
+            android:numeric="integer" />
+
+        <amirz.adaptivestune.settings.EditTextPreference
+            android:key="@string/pref_measurement_decay_keep"
+            android:title="@string/pref_measurement_decay_keep_title"
+            android:defaultValue="@integer/default_measurement_decay_keep"
+            android:numeric="integer" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/category_reset">
 
         <Preference

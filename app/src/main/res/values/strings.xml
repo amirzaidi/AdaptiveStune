@@ -26,6 +26,10 @@
     <string name="pref_duration_coefficient_title">Duration coefficient</string>
     <string name="pref_duration_pow_title">Duration power</string>
 
+    <string name="category_measurement_decay">Measurement Decay</string>
+    <string name="pref_measurement_decay_trigger_title">Trigger</string>
+    <string name="pref_measurement_decay_keep_title">Keep</string>
+
     <string name="category_reset">Reset</string>
     <string name="pref_reset_database_title">Clear database</string>
     <string name="pref_reset_database_summary">Deletes all previously collected data</string>

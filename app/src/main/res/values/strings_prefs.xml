@@ -15,6 +15,8 @@
     <string name="pref_min_data_points_line">pref_min_data_points_line</string>
     <string name="pref_duration_coefficient">pref_duration_coefficient</string>
     <string name="pref_duration_pow">pref_duration_pow</string>
+    <string name="pref_measurement_decay_trigger">pref_measurements_trigger</string>
+    <string name="pref_measurement_decay_keep">pref_measurements_keep</string>
     <string name="pref_reset_database">pref_reset_database</string>
     <string name="pref_reset_prefs">pref_reset_prefs</string>
 </resources>

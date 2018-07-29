@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import amirz.adaptivestune.Algorithm;
+import amirz.adaptivestune.R;
+import amirz.adaptivestune.Tunable;
 
 public class Measure {
     private static final String TAG = "Measure";
@@ -56,8 +58,15 @@ public class Measure {
             Entry.COL_PERC_99
     };
 
-    private static final int COMPONENT_MAX_RESULTS = 75;
-    private static final int COMPONENT_RESULT_TARGET = 50;
+    public static final Tunable.IntegerRef DECAY_TRIGGER =
+            new Tunable.IntegerRef(R.string.pref_measurement_decay_trigger,
+                    R.integer.default_measurement_decay_trigger);
+
+    public static final Tunable.IntegerRef DECAY_KEEP =
+            new Tunable.IntegerRef(R.string.pref_measurement_decay_keep,
+                    R.integer.default_measurement_decay_keep);
+
+    public static void init() {}
 
     private final Helper mHelper;
     private boolean mClosed;
@@ -110,13 +119,14 @@ public class Measure {
         List<Algorithm.Measurement> results = select(db, Entry.COL_COMPONENT + " = ?",
                 new String[] { componentName.flattenToString() }, ids);
 
-        if (results.size() >= COMPONENT_MAX_RESULTS) {
-            int clearCount = ids.size() - COMPONENT_RESULT_TARGET;
+        if (results.size() >= DECAY_TRIGGER.get()) {
+            int clearCount = ids.size() - DECAY_KEEP.get();
             for (int i = 0; i < clearCount; i++) {
                 db.delete(Entry.TABLE_NAME, Entry._ID + " = ?",
                         new String[] { String.valueOf(ids.get(i)) });
             }
-            Log.e(TAG, "Cleared " + clearCount + " results for " + componentName.flattenToString());
+            Log.e(TAG, "Cleared " + clearCount + " results for " +
+                    componentName.flattenToString());
         }
 
         return results;
