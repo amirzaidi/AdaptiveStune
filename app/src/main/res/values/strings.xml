@@ -34,7 +34,11 @@
 
     <string name="on_reset_database">Database has been cleared</string>
     <string name="on_reset_pref">Preferences have been restored to the default values</string>
-    <string name="go_there">Go there</string>
+
     <string name="title_missing_service">Missing Service</string>
-    <string name="desc_missing_service">Currently, the accessibility service is not running. Do you want to go to the settings app to enable it?</string>
+    <string name="desc_missing_service">
+        Currently, the accessibility service is not running.
+        Do you want to go to the settings app to enable it?
+    </string>
+    <string name="go_there">Go there</string>
 </resources>
