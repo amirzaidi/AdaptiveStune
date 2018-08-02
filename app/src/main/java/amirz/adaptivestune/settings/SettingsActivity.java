@@ -17,8 +17,7 @@ import android.widget.Toast;
 
 import amirz.adaptivestune.R;
 import amirz.adaptivestune.StuneService;
-import amirz.adaptivestune.Tunable;
-import amirz.adaptivestune.Tweaker;
+import amirz.adaptivestune.su.Tweaker;
 import amirz.adaptivestune.database.Measure;
 
 import static amirz.adaptivestune.database.Settings.prefs;

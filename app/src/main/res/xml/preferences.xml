@@ -110,6 +110,12 @@
     <PreferenceCategory android:title="@string/category_measurement_decay">
 
         <amirz.adaptivestune.settings.EditTextPreference
+            android:key="@string/pref_measurement_min_frames"
+            android:title="@string/pref_measurement_min_frames_title"
+            android:defaultValue="@integer/default_measurement_min_frames"
+            android:numeric="integer" />
+
+        <amirz.adaptivestune.settings.EditTextPreference
             android:key="@string/pref_measurement_decay_trigger"
             android:title="@string/pref_measurement_decay_trigger_title"
             android:defaultValue="@integer/default_measurement_decay_trigger"

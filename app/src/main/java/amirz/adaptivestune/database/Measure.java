@@ -13,10 +13,11 @@ import android.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-import amirz.adaptivestune.Algorithm;
-import amirz.adaptivestune.R;
-import amirz.adaptivestune.Tunable;
+import amirz.adaptivestune.learning.Algorithm;
 
+import static amirz.adaptivestune.settings.Tunable.*;
+
+// ToDo: Improve structure for testing.
 public class Measure {
     private static final String TAG = "Measure";
 
@@ -57,16 +58,6 @@ public class Measure {
             Entry.COL_PERC_95,
             Entry.COL_PERC_99
     };
-
-    public static final Tunable.IntegerRef DECAY_TRIGGER =
-            new Tunable.IntegerRef(R.string.pref_measurement_decay_trigger,
-                    R.integer.default_measurement_decay_trigger);
-
-    public static final Tunable.IntegerRef DECAY_KEEP =
-            new Tunable.IntegerRef(R.string.pref_measurement_decay_keep,
-                    R.integer.default_measurement_decay_keep);
-
-    public static void init() {}
 
     private final Helper mHelper;
     private boolean mClosed;

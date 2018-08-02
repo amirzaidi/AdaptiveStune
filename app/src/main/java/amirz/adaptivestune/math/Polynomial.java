@@ -4,8 +4,8 @@ import java.util.List;
 
 public class Polynomial {
     public static class Point {
-        public final double x;
-        public final double y;
+        private final double x;
+        private final double y;
 
         public Point(double x, double y) {
             this.x = x;
@@ -91,6 +91,10 @@ public class Polynomial {
             // Now finally divide the rhs by the coefficient of the variable to be calculated
             mCoefficients[i] /= augmentedNormals[i][i];
         }
+    }
+
+    public int getDegree() {
+        return getCoefficientCount() - 1;
     }
 
     public int getCoefficientCount() {

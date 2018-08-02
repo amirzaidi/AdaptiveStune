@@ -14,7 +14,7 @@
     <string name="category_constants">Constants</string>
     <string name="pref_idle_boost_title">Idle boost</string>
     <string name="pref_default_boost_title">Default boost</string>
-    <string name="pref_max_boost_title">Maximal boost</string>
+    <string name="pref_max_boost_title">Maximum boost</string>
 
     <string name="category_algorithm">Algorithm</string>
     <string name="pref_target_frame_time_ms_title">Frame time target</string>
@@ -26,9 +26,10 @@
     <string name="pref_duration_coefficient_title">Duration coefficient</string>
     <string name="pref_duration_pow_title">Duration power</string>
 
-    <string name="category_measurement_decay">Measurement Decay</string>
-    <string name="pref_measurement_decay_trigger_title">Trigger</string>
-    <string name="pref_measurement_decay_keep_title">Keep</string>
+    <string name="category_measurement_decay">Measurements</string>
+    <string name="pref_measurement_min_frames_title">Minimum frames</string>
+    <string name="pref_measurement_decay_trigger_title">Decay trigger</string>
+    <string name="pref_measurement_decay_keep_title">Keep after decay</string>
 
     <string name="category_reset">Reset</string>
     <string name="pref_reset_database_title">Clear database</string>

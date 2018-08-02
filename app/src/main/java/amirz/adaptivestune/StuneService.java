@@ -13,9 +13,18 @@ import java.util.List;
 
 import amirz.adaptivestune.database.Boost;
 import amirz.adaptivestune.database.Measure;
+import amirz.adaptivestune.learning.Algorithm;
+import amirz.adaptivestune.learning.GfxInfo;
+import amirz.adaptivestune.settings.Tunable;
+import amirz.adaptivestune.su.Tweaker;
 
 import static amirz.adaptivestune.database.Settings.prefs;
+import static amirz.adaptivestune.settings.Tunable.*;
 
+/**
+ * The most important class of the application.
+ * Handles all logging and adjusting of tunables.
+ */
 public class StuneService extends AccessibilityService
         implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "StuneService";
@@ -97,13 +106,6 @@ public class StuneService extends AccessibilityService
         }
     }
 
-    private int readInt(String line) {
-        // Split by :, then take the first word before the space, then remove ms
-        return Integer.valueOf(line.split(":")[1].trim()
-                .split(" ")[0]
-                .replace("ms", ""));
-    }
-
     private void optimizeAndReset(ComponentName oldComponent, ComponentName newComponent) {
         String resetPackage = newComponent.getPackageName();
 
@@ -113,33 +115,15 @@ public class StuneService extends AccessibilityService
         } else {
             String collectPackage = oldComponent.getPackageName();
             List<String> stats = Tweaker.collectAndReset(collectPackage, resetPackage);
-
-            Algorithm.Measurement info = new Algorithm.Measurement(Boost.getBoost(this, oldComponent));
-            for (String line : stats) {
-                if (line.contains("Number Missed Vsync")) {
-                    break;
-                }
-
-                // Parse data into GfxInfo object
-                if (line.contains("Total frames rendered")) {
-                    info.total = readInt(line);
-                } else if (line.contains("Janky frames")) {
-                    info.janky = readInt(line);
-                } else if (line.contains("90th percentile")) {
-                    info.perc90 = readInt(line);
-                } else if (line.contains("95th percentile")) {
-                    info.perc95 = readInt(line);
-                } else if (line.contains("99th percentile")) {
-                    info.perc99 = readInt(line);
-                }
-            }
+            Algorithm.Measurement m = new Algorithm.Measurement(Boost.getBoost(this, oldComponent));
+            GfxInfo.parse(stats, m);
 
             // Do not print logs when there was not even a single frame captured.
-            if (info.total > 0) {
-                mDB.insert(oldComponent, info);
-                Log.w(TAG, "Rendered " + info.total + " (" + Algorithm.getJankTargetOffset(info) +
-                        ", " + Algorithm.getDurationFactor(info) + ") with " + info.janky +
-                        " perc (" + info.perc90 + "ms, " + info.perc95 + "ms, " + info.perc99 +
+            if (m.total >= MIN_FRAMES.get()) {
+                mDB.insert(oldComponent, m);
+                Log.w(TAG, "Rendered " + m.total + " (" + Algorithm.getJankTargetOffset(m) +
+                        ", " + Algorithm.getDurationFactor(m) + ") with " + m.janky +
+                        " perc (" + m.perc90 + "ms, " + m.perc95 + "ms, " + m.perc99 +
                         "ms) for " +  oldComponent.flattenToShortString());
 
                 double componentBoost = Algorithm.getBoost(mDB.select(oldComponent));

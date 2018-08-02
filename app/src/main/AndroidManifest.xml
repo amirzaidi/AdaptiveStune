@@ -6,7 +6,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher_stune"
         android:label="@string/app_name"
-        android:name=".ContainerApp">
+        android:name="com.topjohnwu.superuser.ContainerApp">
 
         <activity
             android:name=".settings.SettingsActivity"
