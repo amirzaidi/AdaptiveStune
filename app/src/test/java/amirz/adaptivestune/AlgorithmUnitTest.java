@@ -45,4 +45,17 @@ public class AlgorithmUnitTest {
         double offset = Algorithm.getJankTargetOffset(m, 10, 1, 1, 1);
         assertTrue(offset > 0);
     }
+
+    @Test
+    public void getDurationLarger() {
+        Algorithm.Measurement m = new Algorithm.Measurement(0);
+
+        m.total = 1;
+        double factor1 = Algorithm.getDurationFactor(m, 1, 1);
+
+        m.total = 2;
+        double factor2 = Algorithm.getDurationFactor(m, 1, 1);
+
+        assertTrue(factor2 > factor1);
+    }
 }
