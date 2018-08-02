@@ -10,6 +10,8 @@ import java.util.List;
 import amirz.adaptivestune.R;
 
 public class Tunable {
+    private final static List<Ref> sTunables = new ArrayList<>();
+
     public static final Tunable.BooleanRef INPUT_BOOST_ENABLED =
             new Tunable.BooleanRef(R.string.pref_input_boost_enabled,
                     R.bool.default_input_boost_enabled);
@@ -89,8 +91,6 @@ public class Tunable {
     public static final Tunable.FloatRef DURATION_POW =
             new Tunable.FloatRef(R.string.pref_duration_pow,
                     R.integer.default_duration_pow);
-
-    private final static List<Ref> sTunables = new ArrayList<>();
 
     public static void applyAll(SharedPreferences prefs, Resources res) {
         for (Ref tunable : sTunables) {
