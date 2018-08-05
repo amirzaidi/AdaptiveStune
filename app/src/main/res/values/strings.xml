@@ -44,4 +44,6 @@
     <string name="service_description">
         Adjust EAS boosts during runtime to optimize battery life at a constant frame rate.
     </string>
+
+    <string name="settings_shortcut">Settings</string>
 </resources>

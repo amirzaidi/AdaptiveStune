@@ -1,0 +1,13 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="settings"
+        android:enabled="true"
+        android:icon="@drawable/ic_settings_blue_24dp"
+        android:shortcutShortLabel="@string/settings_shortcut"
+        android:shortcutLongLabel="@string/settings_shortcut">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="amirz.adaptivestune"
+            android:targetClass="amirz.adaptivestune.settings.SettingsActivity" />
+    </shortcut>
+</shortcuts>
