@@ -26,36 +26,11 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getActionBar().setTitle(R.string.app_name);
 
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
                     .replace(android.R.id.content, new SettingsFragment())
                     .commit();
-        }
-
-        if (!StuneService.sIsRunning) {
-            new MissingServiceDialog().show(getFragmentManager(), "missing_service");
-        }
-    }
-
-    public static class MissingServiceDialog extends DialogFragment
-            implements DialogInterface.OnClickListener {
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final Context context = getActivity();
-            return new AlertDialog.Builder(context)
-                    .setTitle(R.string.title_missing_service)
-                    .setMessage(R.string.desc_missing_service)
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(R.string.go_there, this)
-                    .create();
-        }
-
-        @Override
-        public void onClick(DialogInterface dialogInterface, int i) {
-            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
         }
     }
 

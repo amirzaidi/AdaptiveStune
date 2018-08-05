@@ -8,16 +8,27 @@ import java.util.List;
 
 import static amirz.adaptivestune.settings.Tunable.*;
 
+/**
+ * Handles all LibSU interactions.
+ */
 public class Tweaker {
     private static final String TAG = "Tweaker";
 
     private static int mCurrentBoost = -1;
 
-    public static void reset() {
+    /**
+     * Applies default values to the kernel tunables for all parameters.
+     */
+    public static void setup() {
         applyStaticParams();
-        setDynamicStuneBoost(DEFAULT_BOOST.get());
+        setDynamicStuneBoost(mCurrentBoost == -1
+                ? DEFAULT_BOOST.get()
+                : mCurrentBoost);
     }
 
+    /**
+     * Applies the static values to the kernel tunables.
+     */
     public static void applyStaticParams() {
         runSU("echo " + (INPUT_BOOST_ENABLED.get() ? 1 : 0) + " > /sys/module/cpu_boost/parameters/input_boost_enabled",
                 "echo " + INPUT_BOOST_MS.get() + " > /sys/module/cpu_boost/parameters/input_boost_ms",
@@ -26,6 +37,10 @@ public class Tweaker {
                 "echo " + IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
     }
 
+    /**
+     * Applies a boost value to the kernel tunables.
+     * @param boost Boost value used for sched_boost and dynamic_stune_boost.
+     */
     public static void setDynamicStuneBoost(int boost) {
         Log.w(TAG, "Setting dynamic stune boost to " + boost + " (" + boost + ")");
         if (boost != mCurrentBoost) {
@@ -36,6 +51,12 @@ public class Tweaker {
         }
     }
 
+    /**
+     * Runs gfxinfo commands to collect framerate data and reset it afterwards.
+     * @param collectPackage The package to collect framerate data from.
+     * @param resetPackage The package that needs to be reset.
+     * @return Result of the collection command.
+     */
     public static List<String> collectAndReset(String collectPackage, String resetPackage) {
         String reset = "dumpsys gfxinfo " + resetPackage + " reset";
         // It is possible that the new package name is the same,
