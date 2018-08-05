@@ -16,6 +16,7 @@
     <string name="pref_duration_coefficient">pref_duration_coefficient</string>
     <string name="pref_duration_pow">pref_duration_pow</string>
     <string name="pref_measurement_min_frames">pref_measurements_min_frames</string>
+    <string name="pref_measurement_min_duration">pref_measurements_min_duration</string>
     <string name="pref_measurement_decay_trigger">pref_measurements_decay_trigger</string>
     <string name="pref_measurement_decay_keep">pref_measurements_decay_keep</string>
     <string name="pref_reset_database">pref_reset_database</string>

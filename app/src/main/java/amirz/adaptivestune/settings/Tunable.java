@@ -47,6 +47,10 @@ public class Tunable {
             new Tunable.IntegerRef(R.string.pref_measurement_min_frames,
                     R.integer.default_measurement_min_frames);
 
+    public static final Tunable.IntegerRef MIN_DURATION =
+            new Tunable.IntegerRef(R.string.pref_measurement_min_duration,
+                    R.integer.default_measurement_min_duration);
+
     public static final Tunable.IntegerRef DECAY_TRIGGER =
             new Tunable.IntegerRef(R.string.pref_measurement_decay_trigger,
                     R.integer.default_measurement_decay_trigger);

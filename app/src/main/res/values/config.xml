@@ -19,6 +19,7 @@
     <item name="default_duration_pow" type="integer" format="float">0.5</item>
 
     <integer name="default_measurement_min_frames">10</integer>
+    <integer name="default_measurement_min_duration">1000</integer>
     <integer name="default_measurement_decay_trigger">75</integer>
     <integer name="default_measurement_decay_keep">50</integer>
 </resources>

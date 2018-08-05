@@ -28,6 +28,7 @@
 
     <string name="category_measurement_decay">Measurements</string>
     <string name="pref_measurement_min_frames_title">Minimum frames</string>
+    <string name="pref_measurement_min_duration_title">Minimum duration</string>
     <string name="pref_measurement_decay_trigger_title">Decay trigger</string>
     <string name="pref_measurement_decay_keep_title">Keep after decay</string>
 

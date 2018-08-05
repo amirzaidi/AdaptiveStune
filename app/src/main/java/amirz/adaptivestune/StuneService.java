@@ -1,12 +1,8 @@
 package amirz.adaptivestune;
 
 import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
@@ -36,13 +32,6 @@ public class StuneService extends AccessibilityService
 
     private Handler mHandler;
     private Measure mDB;
-    private final BroadcastReceiver mBootReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.w(TAG, "Boot intent received, applying tunables to kernel");
-            Tweaker.setup();
-        }
-    };
 
     // Save boost so we only write on change
     private ComponentName mCurrentComponent;
@@ -59,10 +48,6 @@ public class StuneService extends AccessibilityService
 
         Tunable.applyAll(prefs(this), getResources());
         prefs(this).registerOnSharedPreferenceChangeListener(this);
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_BOOT_COMPLETED);
-        registerReceiver(mBootReceiver, filter);
 
         // Call here too for when this service is being enabled manually after boot.
         Tweaker.setup();
@@ -83,7 +68,6 @@ public class StuneService extends AccessibilityService
         super.onDestroy();
         sIsRunning = false;
 
-        unregisterReceiver(mBootReceiver);
         prefs(this).unregisterOnSharedPreferenceChangeListener(this);
 
         mDB.close();
@@ -100,7 +84,7 @@ public class StuneService extends AccessibilityService
 
             // User must at least be in this component for a full second before applying data.
             final ComponentName oldComponent =
-                    mCurrentTime + 1000L < System.currentTimeMillis() ?
+                    mCurrentTime + MIN_DURATION.get() < System.currentTimeMillis() ?
                             mCurrentComponent :
                             null;
 
