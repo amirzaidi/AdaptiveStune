@@ -122,7 +122,7 @@ public class SettingsActivity extends Activity {
 
                 // Reload tunables and kernel values after the truncation.
                 Tunable.applyAll(prefs, getResources());
-                Tweaker.applyDefaultParams();
+                Tweaker.applyStaticParams();
 
                 Toast.makeText(mContext, R.string.on_reset_pref, Toast.LENGTH_SHORT).show();
                 mContext.recreate();

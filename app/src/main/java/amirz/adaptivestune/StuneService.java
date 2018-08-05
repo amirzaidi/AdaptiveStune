@@ -51,7 +51,7 @@ public class StuneService extends AccessibilityService
         setServiceInfo(info);
 
         Tunable.applyAll(prefs(this), getResources());
-        Tweaker.applyDefaultParams();
+        Tweaker.reset();
         prefs(this).registerOnSharedPreferenceChangeListener(this);
 
         sIsRunning = true;
@@ -61,7 +61,7 @@ public class StuneService extends AccessibilityService
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         // Only restore default values if any of the tunables changed.
         if (Tunable.apply(prefs, getResources(), key)) {
-            Tweaker.applyDefaultParams();
+            Tweaker.applyStaticParams();
         }
     }
 
