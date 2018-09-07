@@ -2,8 +2,6 @@ package amirz.adaptivestune.su;
 
 import android.util.Log;
 
-import com.topjohnwu.superuser.Shell;
-
 import java.util.List;
 
 import static amirz.adaptivestune.settings.Tunable.*;
@@ -30,11 +28,44 @@ public class Tweaker {
      * Applies the static values to the kernel tunables.
      */
     public static void applyStaticParams() {
-        runSU("echo " + (INPUT_BOOST_ENABLED.get() ? 1 : 0) + " > /sys/module/cpu_boost/parameters/input_boost_enabled",
+        String inputBoostFreq = getInputBoostFreqForProcessor(INPUT_BOOST_FREQ_LITTLE.get(),
+                INPUT_BOOST_FREQ_BIG.get());
+
+        WrapSU.run("echo " + (INPUT_BOOST_ENABLED.get() ? 1 : 0) + " > /sys/module/cpu_boost/parameters/input_boost_enabled",
                 "echo " + INPUT_BOOST_MS.get() + " > /sys/module/cpu_boost/parameters/input_boost_ms",
-                "echo 0:" + INPUT_BOOST_FREQ_LITTLE.get() + " 1:0 2:" +
-                        INPUT_BOOST_FREQ_BIG.get() + " 3:0 > /sys/module/cpu_boost/parameters/input_boost_freq",
-                "echo " + IDLE_BOOST + " > /dev/stune/top-app/schedtune.boost");
+                "echo " + inputBoostFreq.trim() + " > /sys/module/cpu_boost/parameters/input_boost_freq",
+                "echo " + IDLE_BOOST.get() + " > /dev/stune/top-app/schedtune.boost");
+    }
+
+    private static String getInputBoostFreqForProcessor(int littleBoost, int bigBoost) {
+        StringBuilder inputBoostBuilder = new StringBuilder();
+        int clusterType = -1;
+        int cluster = -1;
+        for (Processor.Core core : Processor.getClusterInfo()) {
+            Log.w(TAG, core.toString());
+
+            int freq = 0;
+            int type = core.getType();
+            if (clusterType != type) {
+                clusterType = type;
+                cluster++;
+
+                if (cluster == 0) {
+                    freq = littleBoost;
+                } else if (cluster == 1) {
+                    freq = bigBoost;
+                }
+
+                // It is possible to add more clusters when modern CPUs support it.
+            }
+
+            inputBoostBuilder.append(core.getId());
+            inputBoostBuilder.append(':');
+            inputBoostBuilder.append(freq);
+            inputBoostBuilder.append(' ');
+        }
+
+        return inputBoostBuilder.toString();
     }
 
     /**
@@ -45,7 +76,7 @@ public class Tweaker {
         Log.w(TAG, "Setting dynamic stune boost to " + boost + " (" + boost + ")");
         if (boost != mCurrentBoost) {
             // Calling this separately introduces additional delay, but makes the code cleaner.
-            runSU("echo " + boost + " > /dev/stune/top-app/schedtune.sched_boost",
+            WrapSU.run("echo " + boost + " > /dev/stune/top-app/schedtune.sched_boost",
                     "echo " + boost + " > /sys/module/cpu_boost/parameters/dynamic_stune_boost");
             mCurrentBoost = boost;
         }
@@ -62,14 +93,7 @@ public class Tweaker {
         // It is possible that the new package name is the same,
         // so we need to reset after getting frame time stats.
         return collectPackage == null
-                ? runSU(reset)
-                : runSU("dumpsys gfxinfo " + collectPackage, reset);
-    }
-
-    private static List<String> runSU(String... command) {
-        for (String str : command) {
-            Log.d(TAG, "SU: " + str);
-        }
-        return Shell.su(command).exec().getOut();
+                ? WrapSU.run(reset)
+                : WrapSU.run("dumpsys gfxinfo " + collectPackage, reset);
     }
 }

@@ -2,6 +2,8 @@ package amirz.adaptivestune.learning;
 
 import java.util.List;
 
+import amirz.adaptivestune.su.WrapSU;
+
 public class GfxInfo {
     /**
      * Subclass that contains the aggregate results of a gfxinfo command line call.
@@ -22,23 +24,16 @@ public class GfxInfo {
 
             // Parse data into GfxInfo object
             if (line.contains("Total frames rendered")) {
-                info.total = readInt(line);
+                info.total = WrapSU.parseInt(line);
             } else if (line.contains("Janky frames")) {
-                info.janky = readInt(line);
+                info.janky = WrapSU.parseInt(line);
             } else if (line.contains("90th percentile")) {
-                info.perc90 = readInt(line);
+                info.perc90 = WrapSU.parseInt(line);
             } else if (line.contains("95th percentile")) {
-                info.perc95 = readInt(line);
+                info.perc95 = WrapSU.parseInt(line);
             } else if (line.contains("99th percentile")) {
-                info.perc99 = readInt(line);
+                info.perc99 = WrapSU.parseInt(line);
             }
         }
-    }
-
-    private static int readInt(String line) {
-        // Split by :, then take the first word before the space, then remove ms
-        return Integer.valueOf(line.split(":")[1].trim()
-                .split(" ")[0]
-                .replace("ms", ""));
     }
 }
