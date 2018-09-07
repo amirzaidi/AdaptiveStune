@@ -26,4 +26,24 @@ public class Parabola {
         // Calculate intersection with line by shifting up/down and then taking the roots.
         return root(a, b, c - y);
     }
+
+    public static boolean derivatePositiveOnXRange(double a, double b, double minX, double maxX) {
+        // Formula: y = ax2 + bx (+ c)
+        // Either the parabola is a line with positive b
+        if (a == 0 && b > 0) {
+            return true;
+        }
+
+        // or the derivative increases and its root is before minX,
+        // or the derivative decreases and its root is after maxX.
+        // Derivative: y' = 2ax + b
+        double root = Line.root(2 * a, b);
+        return (a > 0 && root < minX) || (a < 0 && root > maxX);
+    }
+
+    public static boolean derivateNegativeOnXRange(double a, double b, double minX, double maxX) {
+        // Flip the parabola by multiplying by -1
+        // This will flip the derivate because g(x) = -f(x) -> g'(x) = -f'(x)
+        return derivatePositiveOnXRange(-a, -b, minX, maxX);
+    }
 }

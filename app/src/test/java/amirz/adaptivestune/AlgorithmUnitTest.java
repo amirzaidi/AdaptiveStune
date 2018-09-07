@@ -18,9 +18,8 @@ public class AlgorithmUnitTest {
         points.add(new Polynomial.Point(1, 0));
         points.add(new Polynomial.Point(2, -1));
 
-        double[] expected = { 3, 1 };
-        double[] result = Algorithm.getBoostFromParabola(points);
-        assertArrayEquals(expected, result, TestConstants.DELTA);
+        double result = Algorithm.getBoostFromParabola(points, 0, 2);
+        assertEquals(1, result, TestConstants.DELTA);
     }
 
     @Test
@@ -30,7 +29,7 @@ public class AlgorithmUnitTest {
         points.add(new Polynomial.Point(2, -3));
 
         double expected = 1;
-        double result = Algorithm.getBoostFromLine(points);
+        double result = Algorithm.getBoostFromLine(points, 0, 2);
         assertEquals(expected, result, TestConstants.DELTA);
     }
 

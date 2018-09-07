@@ -62,40 +62,26 @@ public class Algorithm {
         }
 
         if (boosts.size() >= minPointsParabola) {
-            double[] intersect = getBoostFromParabola(points);
-            if (intersect.length == 2) {
-                // Never extrapolate, only interpolate.
-                boolean firstBetween = between(intersect[0], minMeasuredBoost, maxMeasuredBoost);
-                boolean secondBetween = between(intersect[1], minMeasuredBoost, maxMeasuredBoost);
-                if (firstBetween && !secondBetween) {
-                    Log.d(TAG, "Parabola result 1: boost = " + intersect[0]);
-                    return intersect[0];
-                }
-                if (!firstBetween && secondBetween) {
-                    Log.d(TAG, "Parabola result 2: boost = " + intersect[1]);
-                    return intersect[1];
-                }
+            double boost = getBoostFromParabola(points, minMeasuredBoost, maxMeasuredBoost);
+            if (!Double.isNaN(boost)) {
+                return boost;
             }
         }
 
         if (boosts.size() >= minPointsLine) {
-            double intersect = getBoostFromLine(points);
-            if (between(intersect, minMeasuredBoost, maxMeasuredBoost)) {
-                Log.d(TAG, "Line result: boost = " + intersect);
-                return intersect;
+            double boost = getBoostFromLine(points, minMeasuredBoost, maxMeasuredBoost);
+            if (!Double.isNaN(boost)) {
+                return boost;
             }
         }
 
         // Fallback implementation when not enough data has been collected.
         // Adjust based on the last data point.
-        Measurement m = measurements.get(measurements.size() - 1);
-        double offset = getJankTargetOffset(m) * getDurationFactor(m);
-        double boost = m.boost + offset;
-        Log.d(TAG, "Point result: boost = " + offset + " " + boost);
-        return boost;
+        return getBoostFromPoint(measurements.get(measurements.size() - 1));
     }
 
-    public static double[] getBoostFromParabola(List<Polynomial.Point> points) {
+    public static double getBoostFromParabola(List<Polynomial.Point> points, int minMeasuredBoost,
+                                              int maxMeasuredBoost) {
         Polynomial parabola = new Polynomial(points, 2);
 
         double a = parabola.getCoefficient(2);
@@ -104,10 +90,31 @@ public class Algorithm {
 
         Log.w(TAG, "Parabola: " + a + " " + b + " " + c);
 
-        return Parabola.root(a, b, c);
+        if (Parabola.derivateNegativeOnXRange(a, b, minMeasuredBoost, maxMeasuredBoost)) {
+            double[] intersect = Parabola.root(a, b, c);
+            if (intersect.length > 0) {
+                // Both results intersecting zero is impossible because the derivative is always positive.
+                double result = intersect[0];
+                if (between(result, minMeasuredBoost, maxMeasuredBoost)) {
+                    Log.d(TAG, "Parabola result 1: boost = " + result);
+                    return intersect[0];
+                }
+
+                if (intersect.length > 1) {
+                    result = intersect[1];
+                    if (between(result, minMeasuredBoost, maxMeasuredBoost)) {
+                        Log.d(TAG, "Parabola result 2: boost = " + result);
+                        return result;
+                    }
+                }
+            }
+        }
+
+        return Double.NaN;
     }
 
-    public static double getBoostFromLine(List<Polynomial.Point> points) {
+    public static double getBoostFromLine(List<Polynomial.Point> points, int minMeasuredBoost,
+                                          int maxMeasuredBoost) {
         Polynomial line = new Polynomial(points, 1);
 
         double a = line.getCoefficient(1);
@@ -117,9 +124,22 @@ public class Algorithm {
 
         // Line data does not make sense if this is not negative, because there should be a
         // downwards trend for jank values at higher boosts.
-        return a < 0
-                ? Line.root(a, b)
-                : Double.NaN;
+        if (a < 0) {
+            double intersect = Line.root(a, b);
+            if (between(intersect, minMeasuredBoost, maxMeasuredBoost)) {
+                Log.d(TAG, "Line result: boost = " + intersect);
+                return intersect;
+            }
+        }
+
+        return Double.NaN;
+    }
+
+    public static double getBoostFromPoint(Measurement m) {
+        double offset = getJankTargetOffset(m) * getDurationFactor(m);
+        double boost = m.boost + offset;
+        Log.d(TAG, "Point result: boost = " + boost + " (offset " + offset + ")");
+        return boost;
     }
 
     /**
