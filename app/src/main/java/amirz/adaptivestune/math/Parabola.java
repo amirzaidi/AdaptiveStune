@@ -30,8 +30,8 @@ public class Parabola {
     public static boolean derivatePositiveOnXRange(double a, double b, double minX, double maxX) {
         // Formula: y = ax2 + bx (+ c)
         // Either the parabola is a line with positive b
-        if (a == 0 && b > 0) {
-            return true;
+        if (a == 0) {
+            return b > 0;
         }
 
         // or the derivative increases and its root is before minX,
