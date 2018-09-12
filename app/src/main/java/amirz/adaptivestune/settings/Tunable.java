@@ -12,6 +12,22 @@ import amirz.adaptivestune.R;
 public class Tunable {
     private final static List<Ref> sTunables = new ArrayList<>();
 
+    public static final Tunable.IntegerRef RATE_LIMIT_UP_LITTLE =
+            new Tunable.IntegerRef(R.string.pref_rate_limit_up_little,
+                    R.integer.default_rate_limit_up_little);
+
+    public static final Tunable.IntegerRef RATE_LIMIT_UP_BIG =
+            new Tunable.IntegerRef(R.string.pref_rate_limit_up_big,
+                    R.integer.default_rate_limit_up_big);
+
+    public static final Tunable.IntegerRef RATE_LIMIT_DOWN_LITTLE =
+            new Tunable.IntegerRef(R.string.pref_rate_limit_down_little,
+                    R.integer.default_rate_limit_down_little);
+
+    public static final Tunable.IntegerRef RATE_LIMIT_DOWN_BIG =
+            new Tunable.IntegerRef(R.string.pref_rate_limit_up_big,
+                    R.integer.default_rate_limit_up_big);
+
     public static final Tunable.BooleanRef INPUT_BOOST_ENABLED =
             new Tunable.BooleanRef(R.string.pref_input_boost_enabled,
                     R.bool.default_input_boost_enabled);

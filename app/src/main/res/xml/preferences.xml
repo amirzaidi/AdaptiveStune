@@ -3,6 +3,34 @@
 
     <PreferenceCategory android:title="@string/category_global">
 
+        <amirz.adaptivestune.settings.EditTextPreference
+            android:key="@string/pref_rate_limit_up_little"
+            android:title="@string/pref_rate_limit_up_little_title"
+            android:summary="@string/us_abbreviation"
+            android:defaultValue="@integer/default_rate_limit_up_little"
+            android:numeric="integer" />
+
+        <amirz.adaptivestune.settings.EditTextPreference
+            android:key="@string/pref_rate_limit_up_big"
+            android:title="@string/pref_rate_limit_up_big_title"
+            android:summary="@string/us_abbreviation"
+            android:defaultValue="@integer/default_rate_limit_up_big"
+            android:numeric="integer" />
+
+        <amirz.adaptivestune.settings.EditTextPreference
+            android:key="@string/pref_rate_limit_down_little"
+            android:title="@string/pref_rate_limit_down_little_title"
+            android:summary="@string/us_abbreviation"
+            android:defaultValue="@integer/default_rate_limit_down_little"
+            android:numeric="integer" />
+
+        <amirz.adaptivestune.settings.EditTextPreference
+            android:key="@string/pref_rate_limit_down_big"
+            android:title="@string/pref_rate_limit_down_big_title"
+            android:summary="@string/us_abbreviation"
+            android:defaultValue="@integer/default_rate_limit_down_big"
+            android:numeric="integer" />
+
         <SwitchPreference
             android:key="@string/pref_input_boost_enabled"
             android:title="@string/pref_input_boost_enabled_title"

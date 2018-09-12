@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources translatable="false">
+    <string name="pref_rate_limit_up_little">pref_rate_limit_up_little</string>
+    <string name="pref_rate_limit_up_big">pref_rate_limit_up_big</string>
+    <string name="pref_rate_limit_down_little">pref_rate_limit_down_little</string>
+    <string name="pref_rate_limit_down_big">pref_rate_limit_down_big</string>
     <string name="pref_input_boost_ms">pref_input_boost_ms</string>
     <string name="pref_input_boost_enabled">pref_input_boost_enabled</string>
     <string name="pref_input_boost_freq_little">input_boost_freq_little</string>

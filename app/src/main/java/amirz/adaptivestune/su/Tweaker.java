@@ -2,6 +2,8 @@ package amirz.adaptivestune.su;
 
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static amirz.adaptivestune.settings.Tunable.*;
@@ -28,7 +30,18 @@ public class Tweaker {
      * Applies the static values to the kernel tunables.
      */
     public static void applyStaticParams() {
-        String inputBoostFreq = getInputBoostFreqForProcessor(INPUT_BOOST_FREQ_LITTLE.get(),
+        List<Processor.Core> cores = Processor.getClusterInfo();
+
+        List<String> rateLimit = getRateLimitForProcessor(cores,
+                new String[] { "up", "down" },
+                new int[][] {
+                        new int[] { RATE_LIMIT_UP_LITTLE.get(), RATE_LIMIT_UP_BIG.get() },
+                        new int[] { RATE_LIMIT_DOWN_LITTLE.get(), RATE_LIMIT_DOWN_BIG.get() }
+                });
+
+        WrapSU.run(rateLimit);
+
+        String inputBoostFreq = getInputBoostFreqForProcessor(cores, INPUT_BOOST_FREQ_LITTLE.get(),
                 INPUT_BOOST_FREQ_BIG.get());
 
         WrapSU.run("echo " + (INPUT_BOOST_ENABLED.get() ? 1 : 0) + " > /sys/module/cpu_boost/parameters/input_boost_enabled",
@@ -37,13 +50,40 @@ public class Tweaker {
                 "echo " + IDLE_BOOST.get() + " > /dev/stune/top-app/schedtune.boost");
     }
 
-    private static String getInputBoostFreqForProcessor(int littleBoost, int bigBoost) {
+    private static List<String> getRateLimitForProcessor(List<Processor.Core> cores, String[] modes,
+                                                         int[][] rates) {
+        List<String> list = new ArrayList<>();
+
+        int clusterType = -1;
+        int cluster = -1;
+        for (Processor.Core core : cores) {
+            int type = core.getType();
+            if (clusterType != type) {
+                clusterType = type;
+                cluster++;
+
+                if (cluster == 0 || cluster == 1) {
+                    for (int i = 0; i < modes.length; i++) {
+                        // Skip this cluster if it is not supported
+                        if (rates[i].length > cluster) {
+                            list.add("echo " + rates[i][cluster] +
+                                    " > /sys/devices/system/cpu/cpu" + core.getId() +
+                                    "/cpufreq/schedutil/" + modes[i] + "_rate_limit_us");
+                        }
+                    }
+                }
+            }
+        }
+
+        return list;
+    }
+
+    private static String getInputBoostFreqForProcessor(List<Processor.Core> cores, int littleBoost,
+                                                        int bigBoost) {
         StringBuilder inputBoostBuilder = new StringBuilder();
         int clusterType = -1;
         int cluster = -1;
-        for (Processor.Core core : Processor.getClusterInfo()) {
-            Log.w(TAG, core.toString());
-
+        for (Processor.Core core : cores) {
             int freq = 0;
             int type = core.getType();
             if (clusterType != type) {

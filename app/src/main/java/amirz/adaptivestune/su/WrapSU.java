@@ -16,6 +16,10 @@ public class WrapSU {
         return Shell.su(command).exec().getOut();
     }
 
+    public static List<String> run(List<String> command) {
+        return run(command.toArray(new String[0]));
+    }
+
     public static int parseInt(String line) {
         // Split by :, then take the first word before the space, then remove ms
         return Integer.valueOf(line.split(":")[1].trim()

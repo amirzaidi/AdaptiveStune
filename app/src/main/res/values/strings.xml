@@ -3,11 +3,16 @@
     <string name="launcher_shortcut_name">Stune</string>
 
     <string name="ms_abbreviation">ms</string>
+    <string name="us_abbreviation">us</string>
     <string name="hz_abbreviation">Hz</string>
 
     <string name="category_global">Global</string>
-    <string name="pref_input_boost_ms_title">Input boost duration</string>
+    <string name="pref_rate_limit_up_little_title">Little cluster up rate limit</string>
+    <string name="pref_rate_limit_up_big_title">Big cluster up rate limit</string>
+    <string name="pref_rate_limit_down_little_title">Little cluster down rate limit</string>
+    <string name="pref_rate_limit_down_big_title">Big cluster down rate limit</string>
     <string name="pref_input_boost_enabled_title">Enable input boost</string>
+    <string name="pref_input_boost_ms_title">Input boost duration</string>
     <string name="pref_input_boost_freq_little_title">Little cluster boost frequency</string>
     <string name="pref_input_boost_freq_big_title">Big cluster boost frequency</string>
 

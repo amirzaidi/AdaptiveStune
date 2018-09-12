@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <integer name="default_rate_limit_up_little">500</integer>
+    <integer name="default_rate_limit_up_big">500</integer>
+    <integer name="default_rate_limit_down_little">20000</integer>
+    <integer name="default_rate_limit_down_big">20000</integer>
+
     <bool name="default_input_boost_enabled">true</bool>
     <integer name="default_input_boost_ms">1500</integer>
     <integer name="default_input_boost_freq_little">1000000</integer>
